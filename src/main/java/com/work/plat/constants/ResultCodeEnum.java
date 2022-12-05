@@ -17,6 +17,9 @@ public enum ResultCodeEnum implements IResultCode  {
     FAIL(555, "失败"),
 
 
+    BUSINESS_ERROR(1001004, "业务逻辑异常"),
+
+
             ;
 
     /**
