@@ -13,8 +13,8 @@ public class CustomIdGenerator implements IdentifierGenerator {
       	String bizKey = entity.getClass().getName();
         //根据bizKey调用分布式ID生成
       	//返回生成的id值即可.
-        SnowflakeGenerator snowflakeGenerator = new SnowflakeGenerator();
-        long id = snowflakeGenerator.next().longValue();
+        Snowflake snowflake = new Snowflake();
+        long id = snowflake.getWorkerId(123456789123456L);
         return id;
     }
 }

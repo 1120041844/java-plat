@@ -1,50 +1,55 @@
 package com.work.plat.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
 
 
 @Data
-@TableName("user")
+@TableName("sys_user")
 public class User {
 
-    @TableId("id")
-    private String id;
+    private static final long serialVersionUID = 1L;
 
-    @TableField("name")
-    private String name;
+    @ApiModelProperty("id")
+    @TableId(value = "id")
+    private Integer id;
 
-    @TableField("nick_name")
-    private String nickName;
-
-    @TableField("username")
+    @ApiModelProperty("用户名")
     private String username;
 
-    @TableField("mobile")
-    private String mobile;
-
-    @TableField("password")
+    @ApiModelProperty("密码")
     private String password;
 
-    @TableField("create_id")
-    private String createId;
-    @TableField("create_name")
-    private String createName;
-    @TableField(value = "create_date",fill = FieldFill.INSERT)
-    private Date createDate;
+    @ApiModelProperty("昵称")
+    private String nickname;
 
-    @TableField("update_id")
-    private String updateId;
-    @TableField("update_name")
-    private String updateName;
-    @TableField(value = "update_date",fill = FieldFill.INSERT)
-    private Date updateDate;
+    @ApiModelProperty("邮箱")
+    private String email;
 
-    @TableLogic
-    @TableField(value = "active",fill = FieldFill.INSERT)
-    private Integer active;
-    
+    @ApiModelProperty("电话")
+    private String phone;
+
+    @ApiModelProperty("地址")
+    private String address;
+
+    @ApiModelProperty("创建时间")
+    private Date createTime;
+
+    @ApiModelProperty("头像")
+    private String avatarUrl;
+
+    @ApiModelProperty("角色")
+    private String role;
+
+    @TableField(exist = false)
+    private List<Course> courses;
+
+    @TableField(exist = false)
+    private List<Course> stuCourses;
+
 }
