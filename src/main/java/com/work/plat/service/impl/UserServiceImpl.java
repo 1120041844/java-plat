@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.work.plat.constants.ResultCodeEnum;
 import com.work.plat.entity.Menu;
@@ -114,6 +115,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         if (update < 1) {
             throw new DataException(ResultCodeEnum.FAIL.getCode(), "密码错误");
         }
+    }
+
+    @Override
+    public Page<User> findPage(Page<User> page, String username, String email, String address) {
+        return userMapper.findPage(page, username, email, address);
     }
 
 

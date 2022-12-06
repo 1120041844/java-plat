@@ -21,6 +21,7 @@ public interface IUserService extends IService<User> {
 
     User register(UserDTO userDTO);
 
-
     void resetPassword(UserPasswordDTO userPasswordDTO);
+
+    Page<User> findPage(Page<User> objectPage, String username, String email, String address);
 }

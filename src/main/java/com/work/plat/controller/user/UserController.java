@@ -1,5 +1,7 @@
 package com.work.plat.controller.user;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.work.plat.constants.ApiResult;
 import com.work.plat.controller.base.BaseController;
 import com.work.plat.entity.User;
@@ -82,6 +84,31 @@ public class UserController extends BaseController {
     private ApiResult delete(@RequestParam("id") String id) {
         userService.removeById(id);
         return success();
+    }
+
+    @GetMapping("/role/{role}")
+    public ApiResult<List<User>> findUsersByRole(@PathVariable String role) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("role", role);
+        List<User> list = userService.list(queryWrapper);
+        return data(list);
+    }
+
+    @GetMapping("/username/{username}")
+    public ApiResult<User> findByUsername(@PathVariable String username) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("username", username);
+        return data(userService.getOne(queryWrapper));
+    }
+
+    @GetMapping("/page")
+    public ApiResult findPage(@RequestParam Integer pageNum,
+                           @RequestParam Integer pageSize,
+                           @RequestParam(defaultValue = "") String username,
+                           @RequestParam(defaultValue = "") String email,
+                           @RequestParam(defaultValue = "") String address) {
+
+        return data(userService.findPage(new Page<>(pageNum, pageSize), username, email, address));
     }
 
 
