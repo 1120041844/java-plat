@@ -9,7 +9,7 @@
         <relativePath/>
     </parent>
     <groupId>com.work</groupId>
-    <artifactId>plat</artifactId>
+    <artifactId>java-plat</artifactId>
     <version>1.0</version>
 
     <properties>
