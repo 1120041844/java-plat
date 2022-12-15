@@ -1,0 +1,42 @@
+.blue {
+    font-size: 20px;
+    color: blue;
+}
+.red {
+    color: red;
+}
+
+
+img {
+    width: 200px;
+    height: 150px;
+}
+
+img:hover {
+    animation: move .5s linear forwards;
+}
+
+@keyframes move {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.5);
+    }
+}
+
+.marquee {
+    height: 250px;
+    padding-top:40px;
+}
+
+ul {
+    list-style-type: none;
+}
+
+li {
+    float: left;
+    height: 150px;
+    margin-left: 10px;
+}

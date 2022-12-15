@@ -1,0 +1,70 @@
+html,body{
+    height:100%;
+}
+*{
+    padding:0;
+    margin:0;
+}
+a{
+    text-decoration:none;
+}
+.box{
+    width:150px;
+    /*加上这是横着排的导航*/
+    float:left;
+    margin-left:1px;
+}
+.box1 {
+    display: flex;
+    float: left;
+}
+
+.tit1,.tit2,a{
+    height:40px;
+    width:150px;
+    color:white;
+    line-height:40px;
+    text-align:center;
+}
+.tit1{
+    background:#689ef8;
+    font-size:18px;
+}
+.tit1:hover{
+    background:lightslategray;
+    color:black;
+    font-size:18px;
+}
+.box:hover .tit2{
+    display:block;
+    float: left;
+}
+.tit2{
+    background:#689ef8 ;
+    display:none;
+    position:relative;
+}
+.tit2:hover{
+    background:#4ca730;
+    color:black;
+    font-size:18px;
+}
+.tit2:hover a{
+    display:block;
+}
+.tit3{
+    position:absolute;
+    left:150px;
+    top:0;
+    float: left;
+}
+a{
+    background:#689ef8;
+    display:none;
+    font-size:16px;
+}
+a:hover{
+    background:lightskyblue;
+    color:white;
+    font-size:18px;
+}
