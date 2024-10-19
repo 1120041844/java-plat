@@ -1,9 +1,10 @@
 package com.work.plat.service;
 
 
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.work.plat.entity.User;
+import com.work.plat.entity.bo.UserDO;
+import com.work.plat.entity.dto.AuthInfoDTO;
+import com.work.plat.entity.dto.LoginDTO;
 import com.work.plat.entity.dto.UserDTO;
 import com.work.plat.entity.dto.UserPasswordDTO;
 
@@ -15,13 +16,14 @@ import com.work.plat.entity.dto.UserPasswordDTO;
  * @author 青哥哥
  * @since 2022-01-26
  */
-public interface IUserService extends IService<User> {
+public interface IUserService extends IService<UserDO> {
 
-    UserDTO login(UserDTO userDTO);
+    AuthInfoDTO login(LoginDTO loginDTO);
 
-    User register(UserDTO userDTO);
+    AuthInfoDTO register(LoginDTO loginDTO);
 
     void resetPassword(UserPasswordDTO userPasswordDTO);
 
-    Page<User> findPage(Page<User> objectPage, String username, String email, String address);
+    boolean checkUser(UserDTO userDTO);
+
 }

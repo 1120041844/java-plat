@@ -4,33 +4,26 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.work.plat.constants.ResultCodeEnum;
-import com.work.plat.entity.Menu;
-import com.work.plat.entity.User;
-import com.work.plat.entity.dto.UserDTO;
-import com.work.plat.entity.dto.UserPasswordDTO;
+import com.work.plat.constants.TokenConstant;
+import com.work.plat.entity.TokenInfo;
+import com.work.plat.entity.bo.UserDO;
+import com.work.plat.entity.dto.*;
 import com.work.plat.exception.DataException;
-import com.work.plat.mapper.RoleMapper;
-import com.work.plat.mapper.RoleMenuMapper;
 import com.work.plat.mapper.UserMapper;
-import com.work.plat.service.IMenuService;
 import com.work.plat.service.IUserService;
-import com.work.plat.entity.dto.LoginDTO;
-import com.work.plat.entity.dto.RegisterDTO;
-import com.work.plat.utils.TokenUtils;
+import com.work.plat.utils.SecureUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 
 @Service
-public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements IUserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -38,20 +31,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     @Resource
     private UserMapper userMapper;
 
-    @Resource
-    private RoleMapper roleMapper;
-
-    @Resource
-    private RoleMenuMapper roleMenuMapper;
-
-    @Resource
-    private IMenuService menuService;
 
     @Override
-    public UserDTO login(UserDTO userDTO) {
-        QueryWrapper<User> queryWrapper = null;
-        User userInfo = null;
-        String username = userDTO.getUsername();
+    public AuthInfoDTO login(LoginDTO loginDTO) {
+        QueryWrapper<UserDO> queryWrapper = null;
+        UserDO userInfo = null;
+        String username = loginDTO.getUsername();
         if (StrUtil.isNotEmpty(username)) {
             queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("username",username);
@@ -63,40 +48,41 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             throw new DataException("账号不存在");
         }
         // 验证密码
-        boolean matches = passwordEncoder.matches(userDTO.getPassword(), userInfo.getPassword());
+        boolean matches = passwordEncoder.matches(loginDTO.getPassword(), userInfo.getPassword());
         if (!matches) {
             throw new DataException("密码错误");
         }
-        BeanUtil.copyProperties(userInfo, userDTO, true);
+        UserDTO userDTO = BeanUtil.copyProperties(userInfo, UserDTO.class);
+        Map<String, Object> param = BeanUtil.beanToMap(userDTO);
         // 设置token
-        String token = TokenUtils.genToken(userInfo.getId().toString(), userInfo.getPassword());
-        userDTO.setToken(token);
+        TokenInfo accessToken = SecureUtil.createJWT(param, "audience", "issuser", TokenConstant.HEADER);
 
-        String role = userInfo.getRole(); // ROLE_ADMIN
-        // 设置用户的菜单列表
-        List<Menu> roleMenus = getRoleMenus(role);
-        userDTO.setMenus(roleMenus);
-        return userDTO;
+        AuthInfoDTO authInfoDto = new AuthInfoDTO();
+        authInfoDto.setUserDTO(userDTO);
+        authInfoDto.setToken(accessToken.getToken());
+        authInfoDto.setExpiresIn(accessToken.getExpire());
 
+        return authInfoDto;
     }
 
+
+
     @Override
-    public User register(UserDTO userDTO) {
-        String username = userDTO.getUsername();
-        QueryWrapper<User> queryWrapper = null;
+    public AuthInfoDTO register(LoginDTO loginDTO) {
+        String username = loginDTO.getUsername();
+        QueryWrapper<UserDO> queryWrapper = null;
         if (StrUtil.isNotEmpty(username)) {
             queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("username",username);
-            User one = this.getOne(queryWrapper);
+            UserDO one = this.getOne(queryWrapper);
             if (ObjectUtil.isNotEmpty(one)) {
                 throw new DataException("账户:{"+ username +"}已被注册");
             }
         }
 
-        User user = new User();
-        BeanUtil.copyProperties(userDTO,user);
+        UserDO user = BeanUtil.copyProperties(loginDTO, UserDO.class);
 
-        String password = userDTO.getPassword();
+        String password = loginDTO.getPassword();
         if (StrUtil.isNotEmpty(password)) {
             String passwordEncode = passwordEncoder.encode(password);
             user.setPassword(passwordEncode);
@@ -106,7 +92,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user.setPassword(passwordEncode);
         }
         boolean save = super.save(user);
-        return user;
+
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        Map<String, Object> param = BeanUtil.beanToMap(userDTO);
+        // 设置token
+        TokenInfo accessToken = SecureUtil.createJWT(param, "audience", "issuser", TokenConstant.HEADER);
+
+        AuthInfoDTO authInfoDto = new AuthInfoDTO();
+        authInfoDto.setUserDTO(userDTO);
+        authInfoDto.setToken(accessToken.getToken());
+        authInfoDto.setExpiresIn(accessToken.getExpire());
+        return authInfoDto;
     }
 
     @Override
@@ -118,29 +114,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     @Override
-    public Page<User> findPage(Page<User> page, String username, String email, String address) {
-        return userMapper.findPage(page, username, email, address);
-    }
-
-
-    private List<Menu> getRoleMenus(String roleFlag) {
-        Integer roleId = roleMapper.selectByFlag(roleFlag);
-        // 当前角色的所有菜单id集合
-        List<Integer> menuIds = roleMenuMapper.selectByRoleId(roleId);
-
-        // 查出系统所有的菜单(树形)
-        List<Menu> menus = menuService.findMenus("");
-        // new一个最后筛选完成之后的list
-        List<Menu> roleMenus = new ArrayList<>();
-        // 筛选当前用户角色的菜单
-        for (Menu menu : menus) {
-            if (menuIds.contains(menu.getId())) {
-                roleMenus.add(menu);
-            }
-            List<Menu> children = menu.getChildren();
-            // removeIf()  移除 children 里面不在 menuIds集合中的 元素
-            children.removeIf(child -> !menuIds.contains(child.getId()));
+    public boolean checkUser(UserDTO userDTO) {
+        Integer id = userDTO.getId();
+        if (id == null) {
+            return false;
         }
-        return roleMenus;
+        UserDO userDO = super.getById(id);
+        if (userDO == null) {
+            return false;
+        }
+        // ...
+        return true;
     }
+
+
 }

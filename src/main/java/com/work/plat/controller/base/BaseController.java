@@ -4,6 +4,9 @@ package com.work.plat.controller.base;
 import com.work.plat.constants.ApiResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
+import org.springframework.web.util.WebUtils;
+
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,6 +29,19 @@ public class BaseController {
      */
     public HttpServletRequest getRequest() {
         return this.request;
+    }
+
+    /**
+     * 读取cookie
+     *
+     * @param request HttpServletRequest
+     * @param name    cookie name
+     * @return cookie value
+     */
+    @Nullable
+    public static String getCookieVal(HttpServletRequest request, String name) {
+        Cookie cookie = WebUtils.getCookie(request, name);
+        return cookie != null ? cookie.getValue() : null;
     }
 
 

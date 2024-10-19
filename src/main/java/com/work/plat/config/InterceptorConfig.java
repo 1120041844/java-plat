@@ -1,5 +1,6 @@
 package com.work.plat.config;
 
+import com.work.plat.intercepter.AuthInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -19,8 +20,8 @@ public class InterceptorConfig implements WebMvcConfigurer {
     }
 
     @Bean
-    public JwtInterceptor jwtInterceptor() {
-        return new JwtInterceptor();
+    public AuthInterceptor jwtInterceptor() {
+        return new AuthInterceptor();
     }
 
 }
