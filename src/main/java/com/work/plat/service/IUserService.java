@@ -3,10 +3,8 @@ package com.work.plat.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.work.plat.entity.bo.UserDO;
-import com.work.plat.entity.dto.AuthInfoDTO;
-import com.work.plat.entity.dto.LoginDTO;
-import com.work.plat.entity.dto.UserDTO;
-import com.work.plat.entity.dto.UserPasswordDTO;
+import com.work.plat.entity.dto.*;
+import org.springframework.web.multipart.MultipartFile;
 
 /**
  * <p>
@@ -20,10 +18,14 @@ public interface IUserService extends IService<UserDO> {
 
     AuthInfoDTO login(LoginDTO loginDTO);
 
+    AuthInfoDTO wxLogin(WxLoginDTO wxLoginDTO);
+
+
     AuthInfoDTO register(LoginDTO loginDTO);
 
     void resetPassword(UserPasswordDTO userPasswordDTO);
 
     boolean checkUser(UserDTO userDTO);
 
+    Boolean uploadAvatar(MultipartFile avatar);
 }

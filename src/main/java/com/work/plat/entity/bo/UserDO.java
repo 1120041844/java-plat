@@ -11,8 +11,10 @@ public class UserDO {
 
     private static final long serialVersionUID = 1L;
 
-    @TableId(value = "id")
+    @TableId(value = "id",type = IdType.AUTO)
     private Integer id;
+
+    private String openId;
 
     private String username;
 
@@ -25,6 +27,8 @@ public class UserDO {
     private String phone;
 
     private String address;
+
+    private String avatar;
 
     private Date createTime;
 

@@ -1,13 +1,18 @@
 package com.work.plat.utils;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.work.plat.constants.TokenConstant;
 import com.work.plat.entity.TokenInfo;
+import com.work.plat.entity.dto.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import kotlin.text.Charsets;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.util.WebUtils;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -21,6 +26,23 @@ public class SecureUtil {
     private static final String BASE64_SECURITY = Base64.getEncoder().encodeToString(TokenConstant.SIGN_KEY.getBytes(Charsets.UTF_8));
 
     private final static String HEADER = TokenConstant.HEADER;
+
+
+    public static UserDTO getUser() {
+        HttpServletRequest request = getRequest();
+        Claims claims = getClaims(request);
+        return BeanUtil.toBean(claims, UserDTO.class);
+    }
+
+    /**
+     * 获取 HttpServletRequest
+     *
+     * @return {HttpServletRequest}
+     */
+    public static HttpServletRequest getRequest() {
+        RequestAttributes requestAttributes = RequestContextHolder.getRequestAttributes();
+        return (requestAttributes == null) ? null : ((ServletRequestAttributes) requestAttributes).getRequest();
+    }
 
     /**
      * 获取Claims

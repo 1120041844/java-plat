@@ -1,9 +1,12 @@
 package com.work.plat.utils;
 
+import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole;
 import com.volcengine.ark.runtime.service.ArkService;
+import io.reactivex.Flowable;
+import io.reactivex.functions.Consumer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -77,14 +80,35 @@ public class DouBaoUtil {
         service.streamChatCompletion(streamChatCompletionRequest)
                 .doOnError(Throwable::printStackTrace)
                 .blockingForEach(
-                        choice -> {
-                            if (choice.getChoices().size() > 0) {
-                                System.out.print(choice.getChoices().get(0).getMessage().getContent());
+                        new Consumer<ChatCompletionChunk>() {
+                            @Override
+                            public void accept(ChatCompletionChunk choice) throws Exception {
+                                if (choice.getChoices().size() > 0) {
+                                    System.out.print(choice.getChoices().get(0).getMessage().getContent());
+                                }
                             }
                         }
                 );
 
         // shutdown service
         service.shutdownExecutor();
+    }
+
+    public static Flowable<ChatCompletionChunk> streamingChat2(String message) {
+        System.out.println("\n----- streaming request -----");
+        final List<ChatMessage> streamMessages = new ArrayList<>();
+        final ChatMessage streamSystemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content("你是豆包，是由字节跳动开发的 AI 人工智能助手").build();
+        final ChatMessage streamUserMessage = ChatMessage.builder().role(ChatMessageRole.USER).content(message).build();
+        streamMessages.add(streamSystemMessage);
+        streamMessages.add(streamUserMessage);
+
+        ChatCompletionRequest streamChatCompletionRequest = ChatCompletionRequest.builder()
+                .model("ep-20241019145904-z8xbc")
+                .messages(streamMessages)
+                .build();
+
+        Flowable<ChatCompletionChunk> completion = service.streamChatCompletion(streamChatCompletionRequest);
+        return completion;
+
     }
 }
