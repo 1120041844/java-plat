@@ -13,10 +13,8 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface UserMapper extends BaseMapper<UserDO> {
 
-    @Select("select * from sys_user where open_id = #{openId}")
     UserDO selectByOpenId(@Param("openId") String openId);
 
-    @Update("update sys_user set password = #{newPassword} where username = #{username} and password = #{password}")
     int updatePassword(UserPasswordDTO userPasswordDTO);
 
     Page<UserDO> findPage(Page<UserDO> page, @Param("username") String username, @Param("email") String email, @Param("address") String address);

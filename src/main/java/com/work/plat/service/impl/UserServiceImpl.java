@@ -235,5 +235,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         return super.updateById(userDO);
     }
 
+    @Override
+    public UserDTO getUserByOpenId(String openId) {
+        userMapper.selectByOpenId(openId);
+        return null;
+    }
+
 
 }

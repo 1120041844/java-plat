@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.work.plat.mapper.SysUserRemainingMapper">
+    <sql id="tableName">
+        sys_user_remaining
+    </sql>
+
+    <sql id="baseColumn">
+        id,open_id,number,create_time
+    </sql>
+    <update id="deductionNumber">
+        update sys_user_remaining set number = number - #{times} where open_id = #{openId}
+    </update>
+    <select id="selectNumberByOpenId" resultType="java.lang.Long">
+        select number from sys_user_remaining
+        where open_id = #{openId} for update
+    </select>
+
+</mapper>

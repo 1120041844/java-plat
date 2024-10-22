@@ -11,6 +11,9 @@
         <result column="address" property="address" />
         <result column="create_time" property="createTime" />
     </resultMap>
+    <update id="updatePassword">
+        update sys_user set password = #{newPassword} where username = #{username} and password = #{password}
+    </update>
 
     <select id="findPage" resultMap="pageUser">
         select sys_user.* from sys_user
@@ -26,6 +29,10 @@
                 and sys_user.address like concat('%', #{address} ,'%')
             </if>
         </where>
+    </select>
+    <select id="selectByOpenId" resultType="com.work.plat.entity.bo.UserDO">
+        select * from sys_user where open_id = #{openId}
+
     </select>
 
 </mapper>

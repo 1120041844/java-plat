@@ -28,4 +28,6 @@ public interface IUserService extends IService<UserDO> {
     boolean checkUser(UserDTO userDTO);
 
     Boolean uploadAvatar(MultipartFile avatar);
+
+    UserDTO getUserByOpenId(String openId);
 }

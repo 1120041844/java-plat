@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.work.plat.mapper.ImChatMapper">
+    <sql id="tableName">
+        im_chat
+    </sql>
+
+    <sql id="baseColumn">
+        id,message_id,shortI_id,question,answer,tokens,create_date
+    </sql>
+
+</mapper>
