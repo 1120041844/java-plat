@@ -83,7 +83,7 @@ public class ChatService {
             error.add(ExceptionUtil.getMessage(throwable));
             allSuccess.set(false);
         }).doOnComplete(() -> {
-            record(openId ,shortId,request ,sb.toString(),allSuccess, error);
+            record(openId ,shortId,question ,sb.toString(),allSuccess, error);
         }).blockingForEach(
                 choice -> {
                     if (choice.getChoices().size() > 0) {
@@ -117,16 +117,16 @@ public class ChatService {
      * 请求信息记录
      *
      * @param openId
-     * @param request
+     * @param question
      * @param message
      * @param success
      * @param error
      */
-    private void record(String openId,String shortId,String request, String message, AtomicBoolean success, List<String> error) {
+    private void record(String openId,String shortId,String question, String message, AtomicBoolean success, List<String> error) {
         ImChatDO imChatDO = new ImChatDO();
         imChatDO.setOpenId(openId);
         imChatDO.setShortId(shortId);
-        imChatDO.setQuestion(request);
+        imChatDO.setQuestion(question);
         imChatDO.setAnswer(message);
         imChatDO.setStatus(success.get() ? 0 : 1);
         imChatDO.setErrorMessage(CollUtil.isEmpty(error)? null: JSONArray.toJSONString(error));
