@@ -3,10 +3,16 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://localhost:3306/work?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=false
-    username: root
-    password: 123456
+    url: jdbc:mysql://1.117.62.143:33061/work?useUnicode=true&characterEncoding=UTF-8&allowMultiQueries=true&useSSL=true
+    username: work
+    password: C3YWsLJMcWLBNP87
     driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
 
 
   thymeleaf:

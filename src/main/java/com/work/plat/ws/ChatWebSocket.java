@@ -27,6 +27,8 @@ public class ChatWebSocket {
     public void onOpen(Session session, @PathParam(value = "openId") String openId) {
         // 连接打开逻辑
         log.info("用户:{}建立连接", openId);
+        ChatService chatService = (ChatService) SpringContextUtil.getBean(ChatService.class);
+        chatService.openConnect(session, openId);
     }
 
     @OnMessage

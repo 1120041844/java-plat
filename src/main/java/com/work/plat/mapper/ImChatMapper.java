@@ -3,6 +3,9 @@ package com.work.plat.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.work.plat.entity.bo.ImChatDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * (im_chat)数据Mapper
@@ -13,5 +16,10 @@ import org.apache.ibatis.annotations.Mapper;
 */
 @Mapper
 public interface ImChatMapper extends BaseMapper<ImChatDO> {
+
+
+    List<ImChatDO> selectMessage(@Param("type")String type, @Param("messageId") String messageId);
+
+    List<ImChatDO> selectHistory(@Param("openId") String openId, @Param("type")String type);
 
 }

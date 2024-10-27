@@ -8,5 +8,19 @@
     <sql id="baseColumn">
         id,message_id,shortI_id,question,answer,tokens,create_date
     </sql>
+    <select id="selectMessage" resultType="com.work.plat.entity.bo.ImChatDO">
+
+        select * from im_chat
+        where type = #{type} and message_id = #{messageId}
+    </select>
+    <select id="selectHistory" resultType="com.work.plat.entity.bo.ImChatDO">
+        select * from im_chat
+        where open_id = #{openId}
+        <if test="type != null &amp;&amp; type != ''">
+            and type = #{type}
+        </if>
+        order by create_time asc limit 50;
+
+    </select>
 
 </mapper>

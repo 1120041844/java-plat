@@ -1,5 +1,8 @@
 package com.work.plat.utils;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.exceptions.ExceptionUtil;
+import com.alibaba.fastjson.JSON;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
@@ -7,11 +10,10 @@ import com.volcengine.ark.runtime.model.completion.chat.ChatMessageRole;
 import com.volcengine.ark.runtime.service.ArkService;
 import io.reactivex.Flowable;
 import io.reactivex.functions.Consumer;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
+import java.util.*;
+@Slf4j
 public class DouBaoUtil {
 
     private static String apiKey = "31ef9506-4f7d-4a55-a1ea-9f4caa45e566";
@@ -20,9 +22,6 @@ public class DouBaoUtil {
         service = ArkService.builder().apiKey(apiKey).build();
     }
 
-    public static void main(String[] args) {
-        streamingChat();
-    }
 
     public static void simpleChat() {
         System.out.println("\n----- standard request -----");
@@ -94,12 +93,23 @@ public class DouBaoUtil {
         service.shutdownExecutor();
     }
 
-    public static Flowable<ChatCompletionChunk> streamingChat2(String message) {
-        System.out.println("\n----- streaming request -----");
+    public static Flowable<ChatCompletionChunk> streamingChat2(Map<String,String> historyMap,String roleKey, String message) {
         final List<ChatMessage> streamMessages = new ArrayList<>();
-        final ChatMessage streamSystemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content("你是豆包，是由字节跳动开发的 AI 人工智能助手").build();
-        final ChatMessage streamUserMessage = ChatMessage.builder().role(ChatMessageRole.USER).content(message).build();
+        final ChatMessage streamSystemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content(roleKey).build();
         streamMessages.add(streamSystemMessage);
+        // 是否关联历史
+        if (CollUtil.isNotEmpty(historyMap)) {
+            for (String question : historyMap.keySet()) {
+                String answer = historyMap.get(question);
+                ChatMessage questionMessage = ChatMessage.builder().role(ChatMessageRole.USER).content(question).build();
+                streamMessages.add(questionMessage);
+
+                ChatMessage answerMessage = ChatMessage.builder().role(ChatMessageRole.ASSISTANT).content(answer).build();
+                streamMessages.add(answerMessage);
+            }
+        }
+        // 问题
+        final ChatMessage streamUserMessage = ChatMessage.builder().role(ChatMessageRole.USER).content(message).build();
         streamMessages.add(streamUserMessage);
 
         ChatCompletionRequest streamChatCompletionRequest = ChatCompletionRequest.builder()
@@ -110,5 +120,19 @@ public class DouBaoUtil {
         Flowable<ChatCompletionChunk> completion = service.streamChatCompletion(streamChatCompletionRequest);
         return completion;
 
+    }
+
+    public static void main(String[] args) {
+        Flowable<ChatCompletionChunk> chatCompletionChunkFlowable = streamingChat2(null, "null", "吃饭了么");
+        chatCompletionChunkFlowable.doOnError(throwable -> {
+        }).doOnComplete(() -> {
+        }).blockingForEach(
+                choice -> {
+                    if (choice.getChoices().size() > 0) {
+                        Object content = choice.getChoices().get(0).getMessage().getContent();
+                        String message = String.valueOf(content);
+                        System.out.print(message);
+                    }
+                });
     }
 }

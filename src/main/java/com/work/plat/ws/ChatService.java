@@ -2,17 +2,21 @@ package com.work.plat.ws;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.work.plat.entity.bo.ImChatDO;
 import com.work.plat.entity.bo.SysUserRemainingDO;
 import com.work.plat.entity.bo.UserDO;
+import com.work.plat.enums.RoleTypeEnum;
+import com.work.plat.mapper.AiRoleMapper;
 import com.work.plat.mapper.ImChatMapper;
 import com.work.plat.mapper.SysUserRemainingMapper;
 import com.work.plat.mapper.UserMapper;
 import com.work.plat.utils.Base64IdUtil;
 import com.work.plat.utils.DouBaoUtil;
+import com.work.plat.utils.IDUtil;
 import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.websocket.Session;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 @Slf4j
@@ -35,6 +37,23 @@ public class ChatService {
     UserMapper userMapper;
     @Autowired
     SysUserRemainingMapper sysUserRemainingMapper;
+    @Autowired
+    AiRoleMapper aiRoleMapper;
+
+
+    public void openConnect(Session session, String openId) {
+        try {
+            if (StrUtil.isEmpty(openId)) {
+                session.close();
+            }
+            UserDO userDO = userMapper.selectByOpenId(openId);
+            if (userDO == null) {
+                session.close();
+            }
+        } catch (Exception e) {
+            log.info("异常:",e);
+        }
+    }
 
     @Transactional
     public void handle(String request, Session session, String openId) {
@@ -70,29 +89,62 @@ public class ChatService {
      * @param request
      */
     private void getResponse(String request,Session session,String openId) {
+        JSONObject jsonObject = JSONObject.parseObject(request);
+        String question = jsonObject.getString("question");
+        String messageId = jsonObject.getString("messageId");
+        String type = jsonObject.getString("type");
+        // 获取AI角色
+        String roleKey = getRoleKey(type);
+        // 历史数据
+        Map<String,String> map = new HashMap<>();
+        if (StrUtil.isNotEmpty(messageId)) {
+            handleHistoryChat(map,type,messageId);
+        } else {
+            messageId = IDUtil.generatorSnowId();
+        }
+
+        String shortId = Base64IdUtil.generateShortId();
         AtomicBoolean allSuccess = new AtomicBoolean(true);
         StringBuilder sb = new StringBuilder();
         List<String> error = new ArrayList<>();
-        JSONObject jsonObject = JSONObject.parseObject(request);
-        String question = jsonObject.getString("question");
-        String shortId = Base64IdUtil.generateShortId();
         // 调用AI模型获取答案, 发送给前端
-        Flowable<ChatCompletionChunk> chunkFlowable = DouBaoUtil.streamingChat2(question);
+        Flowable<ChatCompletionChunk> chunkFlowable = DouBaoUtil.streamingChat2(map, roleKey,question);
+        String finalMessageId = messageId;
         chunkFlowable.doOnError(throwable -> {
             log.info("获取答案失败:{}", throwable);
             error.add(ExceptionUtil.getMessage(throwable));
             allSuccess.set(false);
         }).doOnComplete(() -> {
-            record(openId ,shortId,question ,sb.toString(),allSuccess, error);
+            record(openId ,shortId, finalMessageId,type ,question ,sb.toString(),allSuccess, error);
         }).blockingForEach(
                 choice -> {
                     if (choice.getChoices().size() > 0) {
                         Object content = choice.getChoices().get(0).getMessage().getContent();
                         String message = String.valueOf(content);
-                        sendMessage(session, shortId, message);
+                        sendMessage(session, finalMessageId, shortId, message);
                         sb.append(message);
                     }
                 });
+    }
+
+
+    private String getRoleKey(String type) {
+        String roleKey;
+        if (StrUtil.isNotEmpty(type)) {
+            roleKey = aiRoleMapper.getRoleKey(type);
+        } else {
+            roleKey = RoleTypeEnum.AI.getRoleKey();
+        }
+        return roleKey;
+    }
+
+    private void handleHistoryChat(Map<String,String> map, String type, String messageId) {
+        List<ImChatDO> imChatDOS = imChatMapper.selectMessage(type, messageId);
+        if (CollUtil.isNotEmpty(imChatDOS)) {
+            for (ImChatDO chatDO : imChatDOS) {
+                map.put(chatDO.getQuestion(), chatDO.getAnswer());
+            }
+        }
     }
 
     /**
@@ -102,9 +154,10 @@ public class ChatService {
      * @param shortId
      * @param message
      */
-    private void sendMessage(Session session, String shortId, String message) {
+    private void sendMessage(Session session,String messageId, String shortId, String message) {
         try {
             JSONObject jsonObject = new JSONObject();
+            jsonObject.put("messageId",messageId);
             jsonObject.put("q", shortId);
             jsonObject.put("a", message);
             session.getBasicRemote().sendText(jsonObject.toJSONString()); // 逐字发送
@@ -122,15 +175,17 @@ public class ChatService {
      * @param success
      * @param error
      */
-    private void record(String openId,String shortId,String question, String message, AtomicBoolean success, List<String> error) {
+    private void record(String openId,String shortId,String messageId ,String type, String question, String message, AtomicBoolean success, List<String> error) {
         ImChatDO imChatDO = new ImChatDO();
         imChatDO.setOpenId(openId);
         imChatDO.setShortId(shortId);
+        imChatDO.setMessageId(messageId);
         imChatDO.setQuestion(question);
         imChatDO.setAnswer(message);
+        imChatDO.setType(type);
         imChatDO.setStatus(success.get() ? 0 : 1);
         imChatDO.setErrorMessage(CollUtil.isEmpty(error)? null: JSONArray.toJSONString(error));
-        imChatDO.setCreateDate(new Date());
+        imChatDO.setCreateTime(new Date());
         imChatMapper.insert(imChatDO);
     }
 }
