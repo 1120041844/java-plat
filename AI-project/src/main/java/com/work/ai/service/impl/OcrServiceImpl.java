@@ -1,0 +1,22 @@
+package com.work.ai.service.impl;
+
+import com.work.ai.service.IOcrService;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+
+@Service
+public class OcrServiceImpl implements IOcrService {
+    @Override
+    public String ocrRecognition(MultipartFile file) {
+        return "ok";
+//        try {
+//            String base64 = FileUtils.convertToBase64(file);
+//            String oCRText = OcrUtils.generalBasicOCR(base64);
+//            return oCRText;
+//        } catch (Exception e) {
+//            throw new DataException("识别失败");
+//        }
+
+    }
+}
