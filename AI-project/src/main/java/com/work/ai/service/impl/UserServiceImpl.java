@@ -12,7 +12,9 @@ import com.work.ai.entity.TokenInfo;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.entity.dto.*;
 import com.work.ai.exception.DataException;
+import com.work.ai.mapper.SysUserRemainingMapper;
 import com.work.ai.mapper.UserMapper;
+import com.work.ai.utils.Base64IdUtil;
 import com.work.ai.utils.SecureUtil;
 import com.work.ai.constants.ResultCodeEnum;
 import com.work.ai.constants.TokenConstant;
@@ -33,12 +35,12 @@ import java.util.UUID;
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements IUserService {
 
-    @Autowired
+    @Resource
     private PasswordEncoder passwordEncoder;
-
     @Resource
     private UserMapper userMapper;
-
+    @Resource
+    private SysUserRemainingMapper sysUserRemainingMapper;
 
     @Override
     public AuthInfoDTO login(LoginDTO loginDTO) {
@@ -88,7 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
             UserDO userDO = userMapper.selectByOpenId(openid);
             if (userDO == null) {
                 userDO = new UserDO();
-                userDO.setUsername("userName");
+                userDO.setUsername(Base64IdUtil.generateShortId());
                 userDO.setOpenId(openid);
                 // 默认123456
                 String passwordEncode = passwordEncoder.encode("123456");
@@ -98,6 +100,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 this.save(userDO);
             }
             UserDTO userDTO = BeanUtil.copyProperties(userDO, UserDTO.class);
+            // 额度查询
+            Long number = sysUserRemainingMapper.selectNumberByOpenId(openid);
+            userDTO.setNumber(number);
             Map<String, Object> param = BeanUtil.beanToMap(userDTO);
             // 设置token
             TokenInfo accessToken = SecureUtil.createJWT(param, "audience", "issuser", TokenConstant.HEADER);
@@ -228,8 +233,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
 
     @Override
     public UserDTO getUserByOpenId(String openId) {
-        userMapper.selectByOpenId(openId);
-        return null;
+        return userMapper.selectUserByOpenId(openId);
     }
 
 

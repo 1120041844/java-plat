@@ -8,10 +8,10 @@ spring:
     password: C3YWsLJMcWLBNP87
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      connection-timeout: 30000
+      minimum-idle: 3
       maximum-pool-size: 10
-      idle-timeout: 600000
-      max-lifetime: 1800000
+      max-lifetime: 30000   #不能小于30秒，否则默认回到1800秒
+      connection-test-query: SELECT 1
 
 
 

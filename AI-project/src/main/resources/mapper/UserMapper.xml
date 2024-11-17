@@ -34,5 +34,10 @@
         select * from sys_user where open_id = #{openId}
 
     </select>
+    <select id="selectUserByOpenId" resultType="com.work.ai.entity.dto.UserDTO">
+        select u.*, r.number from sys_user u
+        left join sys_user_remaining r on u.open_id = r.open_id
+        where u.open_id = #{openId}
+    </select>
 
 </mapper>

@@ -1,18 +1,12 @@
 package com.work.ai.controller.user;
 
-import com.work.ai.entity.dto.WxLoginDTO;
+import com.work.ai.entity.dto.*;
 import com.work.ai.constants.ApiResult;
 import com.work.ai.controller.base.BaseController;
-import com.work.ai.entity.dto.AuthInfoDTO;
-import com.work.ai.entity.dto.LoginDTO;
-import com.work.ai.entity.dto.UserPasswordDTO;
 import com.work.ai.service.IUserService;
 import com.work.ai.constants.TokenConstant;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -71,6 +65,12 @@ public class UserController extends BaseController {
     @RequestMapping(value = "/uploadAvatar",method = RequestMethod.POST)
     public ApiResult<Boolean> uploadAvatar(MultipartFile avatar) {
         return data(userService.uploadAvatar(avatar));
+    }
+
+
+    @RequestMapping(value = "/getUserDetail",method = RequestMethod.GET)
+    public ApiResult<UserDTO> getUserDetail(@RequestParam("openId") String openId) {
+        return data(userService.getUserByOpenId(openId));
     }
 
 

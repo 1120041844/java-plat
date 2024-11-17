@@ -16,11 +16,18 @@
     <select id="selectHistory" resultType="com.work.ai.entity.bo.ImChatDO">
         select * from im_chat
         where open_id = #{openId}
+        and message_id = #{messageId}
         <if test="type != null &amp;&amp; type != ''">
             and type = #{type}
         </if>
         order by create_time asc limit 50;
-
+    </select>
+    <select id="getHistoryList" resultType="com.work.ai.entity.vo.ImChatHistoryListVO">
+        select * from im_chat
+        where open_id = #{openId}
+        and type = #{type}
+        GROUP BY message_id
+        order by create_time asc limit 20;
     </select>
 
 </mapper>

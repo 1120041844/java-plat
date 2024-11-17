@@ -4,6 +4,8 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.work.ai.entity.bo.ImChatDO;
+import com.work.ai.entity.dto.CreateImgDTO;
+import com.work.ai.entity.vo.ImChatHistoryListVO;
 import com.work.ai.entity.vo.ImChatVO;
 import com.work.ai.mapper.ImChatMapper;
 import com.work.ai.service.IImChatService;
@@ -27,12 +29,25 @@ public class ImChatServiceImpl extends ServiceImpl<ImChatMapper, ImChatDO> imple
     @Autowired
     ImChatMapper imChatMapper;
 
+
     @Override
-    public List<ImChatVO> getHistory(String openId, String type) {
+    public List<ImChatHistoryListVO> getHistoryList(String openId, String type) {
+        return imChatMapper.getHistoryList(openId,type);
+    }
+
+
+
+    @Override
+    public List<ImChatVO> getHistory(String openId, String messageId,String type) {
         if (StrUtil.isEmpty(openId)) {
             return null;
         }
-        List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,type);
+        List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,messageId,type);
         return BeanUtil.copyToList(imChatDOS,ImChatVO.class);
+    }
+
+    @Override
+    public Object createImg(CreateImgDTO createImgDTO) {
+        return null;
     }
 }

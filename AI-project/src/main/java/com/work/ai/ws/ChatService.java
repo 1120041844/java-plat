@@ -3,12 +3,15 @@ package com.work.ai.ws;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.exceptions.ExceptionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
+import com.work.ai.constants.ApiResult;
 import com.work.ai.entity.bo.SysUserRemainingDO;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.enums.RoleTypeEnum;
+import com.work.ai.exception.DataException;
 import com.work.ai.mapper.AiRoleMapper;
 import com.work.ai.mapper.ImChatMapper;
 import com.work.ai.mapper.SysUserRemainingMapper;
@@ -24,8 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.websocket.Session;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static cn.hutool.poi.excel.sax.AttributeName.t;
 
 @Slf4j
 @Service
@@ -57,6 +63,9 @@ public class ChatService {
 
     @Transactional
     public void handle(String request, Session session, String openId) {
+        if (StrUtil.isEmpty(openId)) {
+            return;
+        }
         // 获取用户
         UserDO userDO = userMapper.selectByOpenId(openId);
         if (userDO == null) {
@@ -73,7 +82,10 @@ public class ChatService {
             sysUserRemainingMapper.insert(sysUserRemainingDO);
         } else {
             // 余额不足
-            if (number <= 0) return;
+            if (number <= 0) {
+                sendFailMessage(session,"生成失败，额度不足。");
+                return;
+            }
         }
 
         // 获取答案 推送数据
@@ -160,8 +172,22 @@ public class ChatService {
             jsonObject.put("messageId",messageId);
             jsonObject.put("q", shortId);
             jsonObject.put("a", message);
-            session.getBasicRemote().sendText(jsonObject.toJSONString()); // 逐字发送
+            ApiResult<JSONObject> data = ApiResult.data(jsonObject);
+            pushMessage(session,data);
         } catch (Exception e) {
+            log.error("推送数据给客户端失败:", e);
+        }
+    }
+
+    private void sendFailMessage(Session session, String errorMessage) {
+        ApiResult data = ApiResult.fail(errorMessage);
+        pushMessage(session,data);
+    }
+
+    private void pushMessage(Session session, ApiResult data) {
+        try {
+            session.getBasicRemote().sendText(JSON.toJSONString(data)); // 逐字发送
+        } catch (IOException e) {
             log.error("推送数据给客户端失败:", e);
         }
     }
