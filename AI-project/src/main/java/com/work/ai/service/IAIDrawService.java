@@ -1,10 +1,11 @@
 package com.work.ai.service;
 
 import com.work.ai.entity.dto.CreateImgDTO;
+import com.work.ai.entity.vo.CreateImgVO;
 
 public interface IAIDrawService {
 
-    Object createImg(CreateImgDTO createImgDTO);
+    CreateImgVO createImgTask(CreateImgDTO createImgDTO);
 
-    Object selectDrawResult(String jobId);
+    CreateImgVO getTaskResult(Long id);
 }

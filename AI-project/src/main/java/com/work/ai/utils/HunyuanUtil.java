@@ -66,7 +66,6 @@ public class HunyuanUtil {
             req.setStyle(ImgStyleEnum.getStyle(style));
             req.setResolution(ImgSizeEnum.getResolution(size));
             SubmitHunyuanImageJobResponse response = client.SubmitHunyuanImageJob(req);
-
             return response;
         } catch (TencentCloudSDKException e) {
 
@@ -75,7 +74,6 @@ public class HunyuanUtil {
     }
 
     public static QueryHunyuanImageJobResponse getDrawResult(String jobId) {
-
         try {
             QueryHunyuanImageJobRequest req = new QueryHunyuanImageJobRequest();
             req.setJobId(jobId);

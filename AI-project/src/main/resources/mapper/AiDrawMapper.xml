@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.work.ai.mapper.AiDrawMapper">
+    <sql id="tableName">
+        ai_draw
+    </sql>
+
+    <sql id="baseColumn">
+        id,open_id,job_id,requesi_id,style,size,url,token,create_time
+    </sql>
+    <select id="selectByJobId" resultType="com.work.ai.entity.bo.AiDrawDO">
+        select * from ai_draw
+        where open_id = #{openId} and job_id = #{jobId}
+
+
+    </select>
+
+</mapper>
