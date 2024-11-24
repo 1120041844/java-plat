@@ -5,6 +5,8 @@ import com.work.ai.entity.bo.AiDrawDO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 /**
  * (ai_draw)数据Mapper
  *
@@ -17,6 +19,8 @@ public interface AiDrawMapper extends BaseMapper<AiDrawDO> {
 
 
     AiDrawDO selectByJobId(@Param("openId")String openId, @Param("jobId")String jobId);
+
+    List<AiDrawDO> selectByOpenId(@Param("openId")String openId);
 
 
 }

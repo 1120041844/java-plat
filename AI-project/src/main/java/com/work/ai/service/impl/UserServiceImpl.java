@@ -7,7 +7,7 @@ import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.work.ai.constants.WxConstant;
+import com.work.ai.constants.CommonConstant;
 import com.work.ai.entity.TokenInfo;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.entity.dto.*;
@@ -20,7 +20,6 @@ import com.work.ai.constants.ResultCodeEnum;
 import com.work.ai.constants.TokenConstant;
 import com.work.ai.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -128,8 +127,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
         }
 
         Map<String,Object> params = new HashMap<>();
-        params.put("appid", WxConstant.appId);
-        params.put("secret", WxConstant.secret);
+        params.put("appid", CommonConstant.wxAppId);
+        params.put("secret", CommonConstant.wxSecret);
         params.put("js_code",code);
         params.put("grant_type","authorization_code");
         log.info("request code:{}",code);

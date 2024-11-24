@@ -1,8 +1,6 @@
 package com.work.ai.entity.bo;
 
 import java.io.Serializable;
-
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.activerecord.Model;
@@ -12,62 +10,40 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 /**
- * (ai_draw)实体类
+ * (ai_draw_style)实体类
  *
  * @author kancy
- * @since 2024-11-18 21:40:46
+ * @since 2024-11-23 22:27:09
  * @description 由 Mybatisplus Code Generator 创建
  */
 @Data
 @NoArgsConstructor
 @Accessors(chain = true)
-@TableName("ai_draw")
-public class AiDrawDO implements Serializable {
+@TableName("ai_draw_style")
+public class AiDrawStyleDO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
      * id
      */
-    @TableId(type = IdType.AUTO)
+    @TableId
 	private Long id;
     /**
-     * openId
+     * type
      */
-    private String openId;
+    private Integer type;
     /**
-     * jobId
+     * desc
      */
-    private String jobId;
-    /**
-     * requestId
-     */
-    private String requestId;
-
-    private Integer apiCode;
-    /**
-     * content
-     */
-    private String content;
-    /**
-     * style
-     */
-    private Integer style;
-    /**
-     * size
-     */
-    private Integer size;
-
-    private Integer status;
-
-    private String errorMessage;
+    private String style;
     /**
      * url
      */
     private String url;
     /**
-     * token
+     * ramark
      */
-    private Integer token;
+    private String remark;
     /**
      * createTime
      */

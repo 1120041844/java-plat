@@ -1,26 +1,44 @@
-package com.work.ai.service;
+package com.work.ai.service.impl;
 
 import com.volcengine.ark.runtime.model.completion.chat.*;
 import com.volcengine.ark.runtime.service.ArkService;
+import com.work.ai.entity.bo.AiDrawDO;
+import com.work.ai.enums.ApiEnum;
+import com.work.ai.service.DrawService;
 import io.reactivex.Flowable;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class DouBaoService {
+@Service
+public class DoubaoDrawServiceImpl implements DrawService {
+
+
+    @Override
+    public Integer getType() {
+        return ApiEnum.doubao.getCode();
+    }
+
+    @Override
+    public AiDrawDO createDrawTask(AiDrawDO aiDrawDO) {
+
+        return null;
+
+    }
+
+    @Override
+    public AiDrawDO selectDrawResult(AiDrawDO aiDrawDO) {
+
+        return null;
+    }
 
     private static String apiKey = "31ef9506-4f7d-4a55-a1ea-9f4caa45e566";
     private static String model = "ep-20241019145904-z8xbc";
     private ArkService service;
 
-    public static DouBaoService init() {
-        DouBaoService douBaoService = new DouBaoService();
-        douBaoService.service = ArkService.builder().apiKey(apiKey).build();
-
-        return douBaoService;
-    }
 
     public List<ChatCompletionChoice> simpleChat(String question) {
         final List<ChatMessage> messages = new ArrayList<>();
@@ -66,6 +84,5 @@ public class DouBaoService {
         return service.streamChatCompletion(streamChatCompletionRequest)
                 .doOnError(Throwable::printStackTrace);
     }
-
 
 }

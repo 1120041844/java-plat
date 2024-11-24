@@ -12,4 +12,8 @@ public class ImChatHistoryListVO implements Serializable {
 
     private String type;
 
+    private String url;
+
+    private String content;
+
 }

@@ -1,17 +1,24 @@
 package com.work.ai.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tencentcloudapi.hunyuan.v20230901.models.QueryHunyuanImageJobResponse;
 import com.tencentcloudapi.hunyuan.v20230901.models.SubmitHunyuanImageJobResponse;
 import com.work.ai.entity.bo.AiDrawDO;
+import com.work.ai.entity.bo.AiDrawStyleDO;
 import com.work.ai.entity.dto.CreateImgDTO;
+import com.work.ai.entity.vo.AiDrawStyleVO;
 import com.work.ai.entity.vo.CreateImgVO;
+import com.work.ai.enums.ApiEnum;
 import com.work.ai.enums.ImgSizeEnum;
 import com.work.ai.enums.ImgStyleEnum;
 import com.work.ai.enums.StatusEnum;
 import com.work.ai.exception.DataException;
 import com.work.ai.mapper.AiDrawMapper;
+import com.work.ai.mapper.AiDrawStyleMapper;
 import com.work.ai.mapper.SysUserRemainingMapper;
+import com.work.ai.service.DrawFactory;
+import com.work.ai.service.DrawService;
 import com.work.ai.service.IAIDrawService;
 import com.work.ai.utils.HunyuanUtil;
 import com.work.ai.utils.SecureUtil;
@@ -21,6 +28,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -30,6 +38,8 @@ public class AIDrawServiceImpl implements IAIDrawService {
     AiDrawMapper aiDrawMapper;
     @Autowired
     SysUserRemainingMapper sysUserRemainingMapper;
+    @Autowired
+    AiDrawStyleMapper aiDrawStyleMapper;
 
     @Override
     @Transactional
@@ -40,17 +50,19 @@ public class AIDrawServiceImpl implements IAIDrawService {
         if (number <= 0) {
             throw new DataException("可以额度不足");
         }
-        SubmitHunyuanImageJobResponse response = HunyuanUtil.createImg(createImgDTO.getContent(), createImgDTO.getStyleType(), createImgDTO.getSizeType());
 
         AiDrawDO aiDrawDO = new AiDrawDO();
         aiDrawDO.setOpenId(openId);
-        aiDrawDO.setJobId(response.getJobId());
-        aiDrawDO.setRequestId(response.getRequestId());
+        aiDrawDO.setStatus(StatusEnum.process.getCode());
         aiDrawDO.setContent(createImgDTO.getContent());
-        aiDrawDO.setStyle(ImgStyleEnum.getStyle(createImgDTO.getStyleType()));
-        aiDrawDO.setSize(ImgSizeEnum.getResolution(createImgDTO.getSizeType()));
+        aiDrawDO.setStyle(createImgDTO.getStyle());
+        aiDrawDO.setSize(createImgDTO.getSize());
         aiDrawDO.setCreateTime(new Date());
         aiDrawMapper.insert(aiDrawDO);
+
+        DrawService service = DrawFactory.getService(ApiEnum.tencent.getCode());
+        service.createDrawTask(aiDrawDO);
+
         // 扣减额度
         sysUserRemainingMapper.deductionNumber(openId,1);
         CreateImgVO createImgVO = BeanUtil.copyProperties(createImgDTO, CreateImgVO.class);
@@ -65,25 +77,20 @@ public class AIDrawServiceImpl implements IAIDrawService {
             throw new DataException("没找到绘画任务");
         }
 
-        QueryHunyuanImageJobResponse drawResult = HunyuanUtil.getDrawResult(aiDrawDO.getJobId());
+        return getTaskResult(aiDrawDO);
+    }
 
-        String jobStatusCode = drawResult.getJobStatusCode();
-        // 成功
-        if ("5".equals(jobStatusCode)) {
-            aiDrawDO.setStatus(StatusEnum.success.getCode());
-            String[] resultImage = drawResult.getResultImage();
-            String url = resultImage[0];
-            aiDrawDO.setUrl(url);
-            aiDrawMapper.updateById(aiDrawDO);
-            // 失败
-        } else if ("4".equals(jobStatusCode)) {
-            aiDrawDO.setStatus(StatusEnum.fail.getCode());
-            String jobErrorMsg = drawResult.getJobErrorMsg();
-            aiDrawDO.setErrorMessage(jobErrorMsg);
-            aiDrawMapper.updateById(aiDrawDO);
-        }
-
+    @Override
+    public CreateImgVO getTaskResult(AiDrawDO aiDrawDO) {
+        DrawService service = DrawFactory.getService(aiDrawDO.getApiCode());
+        aiDrawDO = service.selectDrawResult(aiDrawDO);
         return BeanUtil.copyProperties(aiDrawDO, CreateImgVO.class);
+    }
+
+    @Override
+    public List<AiDrawStyleVO> getDrawStyle() {
+        List<AiDrawStyleDO> aiDrawStyleDOS = aiDrawStyleMapper.selectList(Wrappers.emptyWrapper());
+        return BeanUtil.copyToList(aiDrawStyleDOS, AiDrawStyleVO.class);
     }
 
 

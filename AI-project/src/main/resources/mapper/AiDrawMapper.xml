@@ -14,5 +14,9 @@
 
 
     </select>
+    <select id="selectByOpenId" resultType="com.work.ai.entity.bo.AiDrawDO">
+        select * from ai_draw
+        where open_id = #{openId}
+    </select>
 
 </mapper>

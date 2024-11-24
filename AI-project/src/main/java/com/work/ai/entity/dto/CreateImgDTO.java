@@ -8,7 +8,7 @@ public class CreateImgDTO implements Serializable {
 
     private String content;
 
-    private Integer sizeType;
+    private Integer size;
 
-    private Integer styleType;
+    private Integer style;
 }

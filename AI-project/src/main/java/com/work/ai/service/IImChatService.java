@@ -9,9 +9,9 @@ import com.work.ai.entity.bo.ImChatDO;
 import java.util.List;
 
 public interface IImChatService extends IService<ImChatDO> {
-    List<ImChatVO> getHistory(String openId,String messageId, String type);
 
     List<ImChatHistoryListVO> getHistoryList(String openId, String type);
 
-    Object createImg(CreateImgDTO createImgDTO);
+    List<ImChatVO> getHistory(String openId,String messageId, String type);
+
 }

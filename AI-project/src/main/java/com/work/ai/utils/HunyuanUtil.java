@@ -21,8 +21,7 @@ public class HunyuanUtil {
         client= new HunyuanClient(new Credential(secretId,secretKey),"ap-guangzhou");
     }
 
-    public static void main(String[] args) throws TencentCloudSDKException {
-    }
+
 
     public static void getToken() throws TencentCloudSDKException {
 
@@ -83,6 +82,12 @@ public class HunyuanUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void main(String[] args) throws TencentCloudSDKException {
+
+        QueryHunyuanImageJobResponse drawResult = getDrawResult("1304034978-1732351011-15ede649-a976-11ef-a7a3-5254005d40ea-0");
+        System.out.println(drawResult.getResultImage()[0]);
     }
 
 }

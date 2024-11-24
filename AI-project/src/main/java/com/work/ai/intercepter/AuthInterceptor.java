@@ -30,9 +30,6 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         try {
-            if (request.getServletPath().startsWith("/static")) {
-                return true;
-            }
             Claims claims = SecureUtil.getClaims(request);
 
             if (claims == null) {

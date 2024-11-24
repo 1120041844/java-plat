@@ -26,5 +26,9 @@ public class ImChatVO implements Serializable {
     private String answer;
 
     private String type;
+    /**
+     * url
+     */
+    private String url;
 
 }

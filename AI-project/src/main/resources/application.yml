@@ -13,8 +13,6 @@ spring:
       max-lifetime: 30000   #不能小于30秒，否则默认回到1800秒
       connection-test-query: SELECT 1
 
-
-
   thymeleaf:
     prefix: classpath:/templates/
     encoding: UTF-8

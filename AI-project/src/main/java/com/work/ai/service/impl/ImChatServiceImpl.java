@@ -3,10 +3,12 @@ package com.work.ai.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.work.ai.entity.bo.AiDrawDO;
 import com.work.ai.entity.bo.ImChatDO;
 import com.work.ai.entity.dto.CreateImgDTO;
 import com.work.ai.entity.vo.ImChatHistoryListVO;
 import com.work.ai.entity.vo.ImChatVO;
+import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.mapper.ImChatMapper;
 import com.work.ai.service.IImChatService;
 import lombok.extern.slf4j.Slf4j;
@@ -28,11 +30,19 @@ public class ImChatServiceImpl extends ServiceImpl<ImChatMapper, ImChatDO> imple
 
     @Autowired
     ImChatMapper imChatMapper;
+    @Autowired
+    AiDrawMapper drawMapper;
 
 
     @Override
     public List<ImChatHistoryListVO> getHistoryList(String openId, String type) {
-        return imChatMapper.getHistoryList(openId,type);
+        if ("1".equals(type)) {
+            return imChatMapper.getHistoryList(openId,type);
+        } else if ("2".equals(type)){
+            List<AiDrawDO> aiDrawDOS = drawMapper.selectByOpenId(openId);
+            return BeanUtil.copyToList(aiDrawDOS,ImChatHistoryListVO.class);
+        }
+        return null;
     }
 
 
@@ -42,12 +52,14 @@ public class ImChatServiceImpl extends ServiceImpl<ImChatMapper, ImChatDO> imple
         if (StrUtil.isEmpty(openId)) {
             return null;
         }
-        List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,messageId,type);
-        return BeanUtil.copyToList(imChatDOS,ImChatVO.class);
-    }
-
-    @Override
-    public Object createImg(CreateImgDTO createImgDTO) {
+        if ("1".equals(type)) {
+            List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,messageId,type);
+            return BeanUtil.copyToList(imChatDOS,ImChatVO.class);
+        } else if ("2".equals(type)) {
+            List<AiDrawDO> aiDrawDOS = drawMapper.selectByOpenId(openId);
+            return BeanUtil.copyToList(aiDrawDOS,ImChatVO.class);
+        }
         return null;
     }
+
 }
