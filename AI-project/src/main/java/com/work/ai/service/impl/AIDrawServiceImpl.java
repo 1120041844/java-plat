@@ -48,7 +48,7 @@ public class AIDrawServiceImpl implements IAIDrawService {
         // 校验是否有额度
         Long number = sysUserRemainingMapper.selectNumberByOpenId(openId);
         if (number <= 0) {
-            throw new DataException("可以额度不足");
+            throw new DataException("可用额度不足");
         }
 
         AiDrawDO aiDrawDO = new AiDrawDO();

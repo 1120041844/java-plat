@@ -29,7 +29,7 @@ public enum ImgStyleEnum {
     ;
 
     private Integer type;
-    private String name;
+    private String desc;
 
 
     public static String getStyle(Integer type) {
@@ -37,7 +37,7 @@ public enum ImgStyleEnum {
 
         for (ImgStyleEnum value : values()) {
             if (value.type == type) {
-                return value.name;
+                return value.name();
             }
         }
         return null;
