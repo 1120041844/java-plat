@@ -95,9 +95,9 @@ public class DouBaoUtil {
         service.shutdownExecutor();
     }
 
-    public static Flowable<ChatCompletionChunk> streamingChat2(Map<String,String> historyMap,String roleKey, String message) {
+    public static Flowable<ChatCompletionChunk> streamingChat2(Map<String,String> historyMap,String roleKeyWorld, String message) {
         final List<ChatMessage> streamMessages = new ArrayList<>();
-        final ChatMessage streamSystemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content(roleKey).build();
+        final ChatMessage streamSystemMessage = ChatMessage.builder().role(ChatMessageRole.SYSTEM).content(roleKeyWorld).build();
         streamMessages.add(streamSystemMessage);
         // 是否关联历史
         if (CollUtil.isNotEmpty(historyMap)) {

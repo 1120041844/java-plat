@@ -106,7 +106,7 @@ public class ChatService {
         String messageId = jsonObject.getString("messageId");
         String type = jsonObject.getString("type");
         // 获取AI角色
-        String roleKey = getRoleKey(type);
+        String roleKeyWorld = getRoleKey(type);
         // 历史数据
         Map<String,String> map = new HashMap<>();
         if (StrUtil.isNotEmpty(messageId)) {
@@ -120,7 +120,7 @@ public class ChatService {
         StringBuilder sb = new StringBuilder();
         List<String> error = new ArrayList<>();
         // 调用AI模型获取答案, 发送给前端
-        Flowable<ChatCompletionChunk> chunkFlowable = DouBaoUtil.streamingChat2(map, roleKey,question);
+        Flowable<ChatCompletionChunk> chunkFlowable = DouBaoUtil.streamingChat2(map, roleKeyWorld,question);
         String finalMessageId = messageId;
         chunkFlowable.doOnError(throwable -> {
             log.info("获取答案失败:{}", throwable);
@@ -142,7 +142,7 @@ public class ChatService {
 
     private String getRoleKey(String type) {
         String roleKey;
-        if (StrUtil.isNotEmpty(type)) {
+        if (StrUtil.isNotEmpty(type) && !RoleTypeEnum.AI.getType().equals(type)) {
             roleKey = aiRoleMapper.getRoleKey(type);
         } else {
             roleKey = RoleTypeEnum.AI.getRoleKey();
