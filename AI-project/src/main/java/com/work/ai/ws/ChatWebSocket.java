@@ -10,11 +10,15 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 @Slf4j
 @Component
 @ServerEndpoint("/chat/{openId}")
 public class ChatWebSocket {
+
+    public static final ConcurrentMap<String, Session> sessionMap = new ConcurrentHashMap<>();
 
 
     @OnOpen
@@ -26,7 +30,7 @@ public class ChatWebSocket {
     }
 
     @OnMessage
-    public void onMessage(String message, Session session, @PathParam(value = "openId") String openId) {
+    public void onMessage(@PathParam(value = "openId") String openId, String message, Session session) {
         // 收到客户端发送消息
         log.info("openId:{} message:{}", openId, message);
         ChatService chatService = (ChatService) SpringContextUtil.getBean(ChatService.class);
@@ -38,6 +42,7 @@ public class ChatWebSocket {
     public void onClose(Session session, @PathParam(value = "openId") String openId) {
         // 连接关闭逻辑
         log.info("用户:{}关闭连接", openId);
+        sessionMap.remove(openId);
     }
 }
 

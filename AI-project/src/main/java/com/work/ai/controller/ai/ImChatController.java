@@ -17,13 +17,13 @@ public class ImChatController {
     IImChatService imChatService;
 
     @GetMapping("/getHistoryList")
-    public ApiResult<List<ImChatHistoryListVO>> getHistory(@RequestParam("openId") String openId , @RequestParam("type")String type) {
-        return ApiResult.data(imChatService.getHistoryList(openId,type));
+    public ApiResult<List<ImChatHistoryListVO>> getHistory( @RequestParam("type")String type) {
+        return ApiResult.data(imChatService.getHistoryList(type));
     }
 
     @GetMapping("/getHistory")
-    public ApiResult<List<ImChatVO>> getHistory(@RequestParam("openId") String openId,@RequestParam String messageId, @RequestParam(required = false, value = "type")String type) {
-        return ApiResult.data(imChatService.getHistory(openId,messageId,type));
+    public ApiResult<List<ImChatVO>> getHistoryDetail(@RequestParam String messageId) {
+        return ApiResult.data(imChatService.getHistoryDetail(messageId));
     }
 
 }

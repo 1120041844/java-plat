@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.work.ai.constants.ApiResult;
+import com.work.ai.constants.ResultCodeEnum;
 import com.work.ai.entity.bo.SysUserRemainingDO;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.enums.RoleTypeEnum;
@@ -55,6 +56,8 @@ public class ChatService {
             UserDO userDO = userMapper.selectByOpenId(openId);
             if (userDO == null) {
                 session.close();
+            } else {
+                ChatWebSocket.sessionMap.put(openId,session);
             }
         } catch (Exception e) {
             log.info("异常:",e);
@@ -83,13 +86,13 @@ public class ChatService {
         } else {
             // 余额不足
             if (number <= 0) {
-                sendFailMessage(session,"生成失败，额度不足。");
+                sendFailMessage(openId, request,"生成失败，额度不足。");
                 return;
             }
         }
 
         // 获取答案 推送数据
-        getResponse(request,session,openId);
+        getResponse(request,openId);
         // 扣减余额
         sysUserRemainingMapper.deductionNumber(openId,1);
     }
@@ -97,10 +100,10 @@ public class ChatService {
     /**
      * 获取答案
      *
-     * @param session
+     * @param openId
      * @param request
      */
-    private void getResponse(String request,Session session,String openId) {
+    private void getResponse(String request,String openId) {
         JSONObject jsonObject = JSONObject.parseObject(request);
         String question = jsonObject.getString("question");
         String messageId = jsonObject.getString("messageId");
@@ -133,7 +136,7 @@ public class ChatService {
                     if (choice.getChoices().size() > 0) {
                         Object content = choice.getChoices().get(0).getMessage().getContent();
                         String message = String.valueOf(content);
-                        sendMessage(session, finalMessageId, shortId, message);
+                        sendMessage(openId, finalMessageId,type, shortId, message);
                         sb.append(message);
                     }
                 });
@@ -162,32 +165,39 @@ public class ChatService {
     /**
      * 发送消息
      *
-     * @param session
+     * @param openId
      * @param shortId
      * @param message
      */
-    private void sendMessage(Session session,String messageId, String shortId, String message) {
+    private void sendMessage(String openId,String messageId,String type, String shortId, String message) {
         try {
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("messageId",messageId);
+            jsonObject.put("type",type);
             jsonObject.put("q", shortId);
             jsonObject.put("a", message);
             ApiResult<JSONObject> data = ApiResult.data(jsonObject);
-            pushMessage(session,data);
+            pushMessage(openId,data);
         } catch (Exception e) {
             log.error("推送数据给客户端失败:", e);
         }
     }
 
-    private void sendFailMessage(Session session, String errorMessage) {
-        ApiResult data = ApiResult.fail(errorMessage);
-        pushMessage(session,data);
+    private void sendFailMessage(String openId, String request, String errorMessage) {
+        JSONObject jsonObject = JSONObject.parseObject(request);
+        JSONObject error = new JSONObject();
+        error.put("type",jsonObject.getString("type"));
+        ApiResult data = ApiResult.data(ResultCodeEnum.FAIL.getCode(), error, errorMessage);
+        pushMessage(openId,data);
     }
 
-    private void pushMessage(Session session, ApiResult data) {
+    private void pushMessage(String openId, ApiResult data) {
         try {
-            session.getBasicRemote().sendText(JSON.toJSONString(data)); // 逐字发送
-        } catch (IOException e) {
+            Session session = ChatWebSocket.sessionMap.get(openId);
+            if (session != null && session.isOpen()) {
+                session.getBasicRemote().sendText(JSON.toJSONString(data)); // 逐字发送
+            }
+        } catch (Exception e) {
             log.error("推送数据给客户端失败:", e);
         }
     }

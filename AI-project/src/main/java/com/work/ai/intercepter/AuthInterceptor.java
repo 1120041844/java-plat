@@ -48,7 +48,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                     map.put(paramName, paramValue);
                 }
             }
-            log.info("request params={}", JSON.toJSONString(map));
+            log.info("request url={} params={}",request.getRequestURI(), JSON.toJSONString(map));
             UserDTO userDTO= BeanUtil.toBean(claims, UserDTO.class);
 
             if (userDTO == null) {

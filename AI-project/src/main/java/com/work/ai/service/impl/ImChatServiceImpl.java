@@ -11,6 +11,7 @@ import com.work.ai.entity.vo.ImChatVO;
 import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.mapper.ImChatMapper;
 import com.work.ai.service.IImChatService;
+import com.work.ai.utils.SecureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,9 +36,13 @@ public class ImChatServiceImpl extends ServiceImpl<ImChatMapper, ImChatDO> imple
 
 
     @Override
-    public List<ImChatHistoryListVO> getHistoryList(String openId, String type) {
+    public List<ImChatHistoryListVO> getHistoryList(String type) {
+        String openId = SecureUtil.getUser().getOpenId();
+        if (StrUtil.isEmpty(openId)) {
+            return null;
+        }
         if ("1".equals(type)) {
-            return imChatMapper.getHistoryList(openId,type);
+            return imChatMapper.getHistoryList(openId);
         } else if ("2".equals(type)){
             List<AiDrawDO> aiDrawDOS = drawMapper.selectByOpenId(openId);
             return BeanUtil.copyToList(aiDrawDOS,ImChatHistoryListVO.class);
@@ -48,18 +53,13 @@ public class ImChatServiceImpl extends ServiceImpl<ImChatMapper, ImChatDO> imple
 
 
     @Override
-    public List<ImChatVO> getHistory(String openId, String messageId,String type) {
+    public List<ImChatVO> getHistoryDetail(String messageId) {
+        String openId = SecureUtil.getUser().getOpenId();
         if (StrUtil.isEmpty(openId)) {
             return null;
         }
-        if ("1".equals(type)) {
-            List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,messageId,type);
-            return BeanUtil.copyToList(imChatDOS,ImChatVO.class);
-        } else if ("2".equals(type)) {
-            List<AiDrawDO> aiDrawDOS = drawMapper.selectByOpenId(openId);
-            return BeanUtil.copyToList(aiDrawDOS,ImChatVO.class);
-        }
-        return null;
+        List<ImChatDO> imChatDOS = imChatMapper.selectHistory(openId,messageId);
+        return BeanUtil.copyToList(imChatDOS,ImChatVO.class);
     }
 
 }

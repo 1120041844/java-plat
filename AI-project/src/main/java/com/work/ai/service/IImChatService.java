@@ -10,8 +10,8 @@ import java.util.List;
 
 public interface IImChatService extends IService<ImChatDO> {
 
-    List<ImChatHistoryListVO> getHistoryList(String openId, String type);
+    List<ImChatHistoryListVO> getHistoryList(String type);
 
-    List<ImChatVO> getHistory(String openId,String messageId, String type);
+    List<ImChatVO> getHistoryDetail(String messageId);
 
 }

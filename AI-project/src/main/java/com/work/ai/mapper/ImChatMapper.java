@@ -18,10 +18,10 @@ import java.util.List;
 @Mapper
 public interface ImChatMapper extends BaseMapper<ImChatDO> {
 
-    List<ImChatHistoryListVO> getHistoryList(@Param("openId")String openId, @Param("type") String type);
+    List<ImChatHistoryListVO> getHistoryList(@Param("openId")String openId);
 
     List<ImChatDO> selectMessage(@Param("type")String type, @Param("messageId") String messageId);
 
-    List<ImChatDO> selectHistory(@Param("openId") String openId,@Param("messageId")String messageId, @Param("type")String type);
+    List<ImChatDO> selectHistory(@Param("openId") String openId,@Param("messageId")String messageId);
 
 }
