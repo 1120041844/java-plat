@@ -18,6 +18,7 @@ import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.service.strategy.DrawService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 
@@ -38,6 +39,7 @@ public class TencentDrawServiceImpl implements DrawService {
     }
 
     @Override
+    @Async
     public AiDrawDO createDrawTask(AiDrawDO aiDrawDO) {
         HunyuanClient client = commonClientConfig.getHunyuanClient();
         try {

@@ -17,6 +17,7 @@ import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.service.strategy.DrawService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -38,8 +39,11 @@ public class DoubaoDrawServiceImpl implements DrawService {
     }
 
     @Override
+    @Async
     public AiDrawDO createDrawTask(AiDrawDO aiDrawDO) {
         try {
+            aiDrawDO.setApiCode(ApiEnum.doubao.getCode());
+
             IVisualService instance = commonClientConfig.getVisualInstance();
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("req_key","high_aes_general_v20_L");
@@ -49,19 +53,26 @@ public class DoubaoDrawServiceImpl implements DrawService {
             jsonObject.put("height",sizeEnum.getHeight());
             String stylePrefix = getImgStylePrefix(aiDrawDO.getStyle());
             jsonObject.put("prompt",stylePrefix + aiDrawDO.getContent());
+            log.info("createDrawTask request:{}", jsonObject.toJSONString());
             Object task = instance.cvSync2AsyncSubmitTask(jsonObject);
             JSONObject response = JSONObject.parseObject(String.valueOf(task));
+            log.info("createDrawTask response:{}",response.toJSONString());
             Integer code = response.getInteger("code");
             if (code == 10000) {
                 JSONObject data = response.getJSONObject("data");
                 String task_id = data.getString("task_id");
+                aiDrawDO.setStatus(StatusEnum.process.getCode());
                 aiDrawDO.setJobId(task_id);
+                aiDrawDO.setRequestId(response.getString("request_id"));
+            } else {
+                aiDrawDO.setStatus(StatusEnum.fail.getCode());
+                aiDrawDO.setRequestId(response.getString("request_id"));
+                aiDrawDO.setErrorMessage(response.getString("message"));
             }
-            aiDrawDO.setRequestId(response.getString("request_id"));
-            aiDrawDO.setApiCode(ApiEnum.doubao.getCode());
             aiDrawMapper.updateById(aiDrawDO);
             return aiDrawDO;
         } catch (Exception e) {
+            log.error("创建绘画任务失败:",e);
             aiDrawDO.setStatus(StatusEnum.fail.getCode());
             aiDrawDO.setErrorMessage(ExceptionUtil.getMessage(e));
             aiDrawMapper.updateById(aiDrawDO);
@@ -81,6 +92,9 @@ public class DoubaoDrawServiceImpl implements DrawService {
     public AiDrawDO selectDrawResult(AiDrawDO aiDrawDO) {
         try {
             String jobId = aiDrawDO.getJobId();
+            if (StrUtil.isEmpty(jobId)) {
+                return aiDrawDO;
+            }
             IVisualService instance = commonClientConfig.getVisualInstance();
             JSONObject jsonObject = new JSONObject();
             jsonObject.put("req_key","high_aes_general_v20_L");
@@ -91,7 +105,9 @@ public class DoubaoDrawServiceImpl implements DrawService {
             req.put("logo_info",logo);
             req.put("return_url",true);
             jsonObject.put("req_json",req.toJSONString());
+            log.info("selectDrawResult request:{}", jsonObject.toJSONString());
             Object task = instance.cvSync2AsyncGetResult(jsonObject);
+            log.info("selectDrawResult response:{}", task);
             DoubaoResult doubaoResult = JSONObject.parseObject(String.valueOf(task), DoubaoResult.class);
             boolean success = doubaoResult.isSuccess();
             if (success) {
@@ -112,10 +128,6 @@ public class DoubaoDrawServiceImpl implements DrawService {
             }
         } catch (Exception e) {
             log.error("获取绘画结果失败:",e);
-            aiDrawDO.setStatus(StatusEnum.fail.getCode());
-            aiDrawDO.setErrorMessage(ExceptionUtil.getMessage(e));
-            aiDrawMapper.updateById(aiDrawDO);
-            return aiDrawDO;
         }
         return null;
     }
