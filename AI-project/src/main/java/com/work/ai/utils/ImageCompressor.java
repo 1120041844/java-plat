@@ -61,9 +61,9 @@ public class ImageCompressor {
     }
 
     public static void main(String[] args) {
-        String inputFile = "/Users/jianan/Desktop/style1.png"; // 替换为你的输入图片路径
-        String outputFile = "/Users/jianan/Desktop/style2.png"; // 替换为你的输出图片路径
-        float quality = 0.1f; // 压缩质量（越低文件越小，质量越低）
+        String inputFile = "/Users/jianan/Desktop/aaa/a07d9948f4ed78.png"; // 替换为你的输入图片路径
+        String outputFile = "/Users/jianan/Desktop/target/a07d9948f4ed78.png"; // 替换为你的输出图片路径
+        float quality = 0.5f; // 压缩质量（越低文件越小，质量越低）
 
         try {
             compressImage(inputFile, outputFile, quality);

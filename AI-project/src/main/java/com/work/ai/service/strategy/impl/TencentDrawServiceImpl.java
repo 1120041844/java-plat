@@ -1,7 +1,6 @@
-package com.work.ai.service.impl;
+package com.work.ai.service.strategy.impl;
 
 import cn.hutool.core.exceptions.ExceptionUtil;
-import cn.hutool.core.io.FileUtil;
 import com.tencentcloudapi.common.exception.TencentCloudSDKException;
 import com.tencentcloudapi.hunyuan.v20230901.HunyuanClient;
 import com.tencentcloudapi.hunyuan.v20230901.models.QueryHunyuanImageJobRequest;
@@ -16,16 +15,11 @@ import com.work.ai.enums.ImgSizeEnum;
 import com.work.ai.enums.ImgStyleEnum;
 import com.work.ai.enums.StatusEnum;
 import com.work.ai.mapper.AiDrawMapper;
-import com.work.ai.service.DrawService;
+import com.work.ai.service.strategy.DrawService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -81,7 +75,7 @@ public class TencentDrawServiceImpl implements DrawService {
                 aiDrawDO.setStatus(StatusEnum.success.getCode());
                 String[] resultImage = response.getResultImage();
                 String url = resultImage[0];
-                String uploadOss = uploadOss(url);
+                String uploadOss = ossService.putObject(url);
                 aiDrawDO.setUrl(uploadOss);
                 aiDrawMapper.updateById(aiDrawDO);
                 // 失败
@@ -92,7 +86,7 @@ public class TencentDrawServiceImpl implements DrawService {
                 aiDrawMapper.updateById(aiDrawDO);
             }
             return aiDrawDO;
-        } catch (TencentCloudSDKException e) {
+        } catch (Exception e) {
             aiDrawDO.setStatus(StatusEnum.fail.getCode());
             aiDrawDO.setErrorMessage(ExceptionUtil.getMessage(e));
             aiDrawMapper.updateById(aiDrawDO);
@@ -100,15 +94,5 @@ public class TencentDrawServiceImpl implements DrawService {
         }
     }
 
-    private String uploadOss(String fileUrl) {
-        try {
-            URL url = new URL(fileUrl);
-            InputStream inputStream = url.openStream();
-            return ossService.putObject("picture", UUID.randomUUID() +".png", inputStream);
-        } catch (Exception e) {
-            log.error("上传文件失败:",e);
-            return null;
-        }
-    }
 
 }

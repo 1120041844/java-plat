@@ -1,4 +1,4 @@
-package com.work.ai.service;
+package com.work.ai.service.strategy;
 
 import com.work.ai.entity.bo.AiDrawDO;
 

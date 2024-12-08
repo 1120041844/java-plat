@@ -42,4 +42,15 @@ public enum ImgStyleEnum {
         }
         return null;
     }
+
+    public static String getDesc(Integer type) {
+        if (type == null) return null;
+
+        for (ImgStyleEnum value : values()) {
+            if (value.type == type) {
+                return value.getDesc();
+            }
+        }
+        return null;
+    }
 }

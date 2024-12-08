@@ -14,4 +14,7 @@ public interface CommonConstant {
     String doubaoApiKey = "31ef9506-4f7d-4a55-a1ea-9f4caa45e566";
     String doubaoModel = "ep-20241019145904-z8xbc";
 
+    String visualAccessKey = "AKLTYjhhNzdkY2EwMjgwNDlmN2FkMzMyZTIyNGY3ZTA1NDE";
+    String visualSecretAccessKey = "WkRSaU1XVm1ZbVl3WVRKaU5EQXdaR0poWVdFMk5URm1PR1EwWTJNNFpXUQ==";
+
 }

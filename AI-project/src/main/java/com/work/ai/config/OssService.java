@@ -9,8 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class OssService {
@@ -22,7 +25,6 @@ public class OssService {
     private static String ossUrl = "https://" + bucketName + ".cos.ap-shanghai.myqcloud.com/";
 
 
-
     public void getBucketList() {
         COSClient cosClient = commonClientConfig.getCosClient();
         List<Bucket> buckets = cosClient.listBuckets();
@@ -30,16 +32,22 @@ public class OssService {
 
     }
 
+    public String putObject(String fileUrl) throws IOException {
+        URL url = new URL(fileUrl);
+        InputStream inputStream = url.openStream();
+        return putObject("picture", UUID.randomUUID() + ".png", inputStream);
 
-    public String putObject(String folder,String fileName, InputStream inputStream) {
+    }
+
+
+    public String putObject(String folder, String fileName, InputStream inputStream) {
         COSClient cosClient = commonClientConfig.getCosClient();
         if (!folder.endsWith("/")) {
             folder += "/";
         }
         String key = folder + fileName;
-        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, inputStream,new ObjectMetadata());
+        PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, inputStream, new ObjectMetadata());
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
-        System.out.println(putObjectResult);
         return ossUrl + key;
     }
 
@@ -48,7 +56,6 @@ public class OssService {
         COSClient cosClient = commonClientConfig.getCosClient();
         PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, file);
         PutObjectResult putObjectResult = cosClient.putObject(putObjectRequest);
-        System.out.println(putObjectResult);
         return ossUrl + key;
     }
 

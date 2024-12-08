@@ -79,12 +79,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     public AuthInfoDTO wxLogin(WxLoginDTO wxLoginDTO) {
         JSONObject data = getUserInfoByWx(wxLoginDTO);
         if (data == null) {
-            throw new DataException("获取信息失败,请稍后再试");
+            throw new DataException("获取登录信息失败,请稍后再试");
         }
 //        //获取会话密钥（session_key）
         String session_key = data.getString("session_key");
         //用户的唯一标识（openid）
         String openid = data.getString("openid");
+        if (StrUtil.isEmpty(openid)) {
+            throw new DataException("登录失败，请重新进入。");
+        }
 
         try {
             UserDO userDO = userMapper.selectByOpenId(openid);

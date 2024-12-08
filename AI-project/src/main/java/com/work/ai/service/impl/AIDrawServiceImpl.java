@@ -2,25 +2,20 @@ package com.work.ai.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tencentcloudapi.hunyuan.v20230901.models.QueryHunyuanImageJobResponse;
-import com.tencentcloudapi.hunyuan.v20230901.models.SubmitHunyuanImageJobResponse;
 import com.work.ai.entity.bo.AiDrawDO;
 import com.work.ai.entity.bo.AiDrawStyleDO;
 import com.work.ai.entity.dto.CreateImgDTO;
 import com.work.ai.entity.vo.AiDrawStyleVO;
 import com.work.ai.entity.vo.CreateImgVO;
 import com.work.ai.enums.ApiEnum;
-import com.work.ai.enums.ImgSizeEnum;
-import com.work.ai.enums.ImgStyleEnum;
 import com.work.ai.enums.StatusEnum;
 import com.work.ai.exception.DataException;
 import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.mapper.AiDrawStyleMapper;
 import com.work.ai.mapper.SysUserRemainingMapper;
-import com.work.ai.service.DrawFactory;
-import com.work.ai.service.DrawService;
+import com.work.ai.service.strategy.DrawFactory;
+import com.work.ai.service.strategy.DrawService;
 import com.work.ai.service.IAIDrawService;
-import com.work.ai.utils.HunyuanUtil;
 import com.work.ai.utils.SecureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +55,7 @@ public class AIDrawServiceImpl implements IAIDrawService {
         aiDrawDO.setCreateTime(new Date());
         aiDrawMapper.insert(aiDrawDO);
 
-        DrawService service = DrawFactory.getService(ApiEnum.tencent.getCode());
+        DrawService service = DrawFactory.getService(ApiEnum.doubao.getCode());
         service.createDrawTask(aiDrawDO);
 
         // 扣减额度
