@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.work.ai.constants.CommonConstant;
 import com.work.ai.entity.TokenInfo;
+import com.work.ai.entity.bo.SysUserRemainingDO;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.entity.dto.*;
 import com.work.ai.exception.DataException;
@@ -97,6 +98,12 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 userDO.setCreateTime(new Date());
                 userDO.setNickname(UUID.randomUUID().toString());
                 this.save(userDO);
+                // 初始化记录数
+                SysUserRemainingDO userRemainingDO = new SysUserRemainingDO();
+                userRemainingDO.setNumber(10L);
+                userRemainingDO.setCreateTime(new Date());
+                userRemainingDO.setOpenId(openid);
+                sysUserRemainingMapper.insert(userRemainingDO);
             }
             UserDTO userDTO = BeanUtil.copyProperties(userDO, UserDTO.class);
             // 额度查询
