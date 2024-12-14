@@ -9,10 +9,7 @@ import com.work.ai.config.OssService;
 import com.work.ai.entity.bo.AiDrawDO;
 import com.work.ai.entity.doubao.DoubaoResult;
 import com.work.ai.entity.doubao.DrawResultVO;
-import com.work.ai.enums.ApiEnum;
-import com.work.ai.enums.ImgSizeEnum;
-import com.work.ai.enums.ImgStyleEnum;
-import com.work.ai.enums.StatusEnum;
+import com.work.ai.enums.*;
 import com.work.ai.mapper.AiDrawMapper;
 import com.work.ai.service.strategy.DrawService;
 import lombok.extern.slf4j.Slf4j;
@@ -128,6 +125,16 @@ public class DoubaoDrawServiceImpl implements DrawService {
             }
         } catch (Exception e) {
             log.error("获取绘画结果失败:",e);
+            try {
+                String errorMsg = e.getMessage();
+                DoubaoResult doubaoResult = JSONObject.parseObject(errorMsg, DoubaoResult.class);
+                Integer code = doubaoResult.getCode();
+                aiDrawDO.setStatus(StatusEnum.fail.getCode());
+                aiDrawDO.setErrorMessage(ErrorMessageEnum.getMessage(code));
+                aiDrawMapper.updateById(aiDrawDO);
+            } catch (Exception ex) {
+                log.error("解析失败异常失败:",e);
+            }
         }
         return null;
     }

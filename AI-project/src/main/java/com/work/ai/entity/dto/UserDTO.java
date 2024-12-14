@@ -14,5 +14,6 @@ public class UserDTO implements Serializable {
     private String avatar;
 
     private Long number;
+    private Long today;
 
 }

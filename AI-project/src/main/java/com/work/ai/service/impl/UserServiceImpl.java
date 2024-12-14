@@ -5,6 +5,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.http.HttpUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.work.ai.constants.CommonConstant;
@@ -21,15 +22,19 @@ import com.work.ai.constants.ResultCodeEnum;
 import com.work.ai.constants.TokenConstant;
 import com.work.ai.service.IUserService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 @Service
@@ -42,6 +47,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     @Resource
     private SysUserRemainingMapper sysUserRemainingMapper;
 
+    private final ReentrantLock lock = new ReentrantLock();
     @Override
     public AuthInfoDTO login(LoginDTO loginDTO) {
         QueryWrapper<UserDO> queryWrapper = null;
@@ -105,6 +111,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
                 SysUserRemainingDO userRemainingDO = new SysUserRemainingDO();
                 userRemainingDO.setNumber(10L);
                 userRemainingDO.setCreateTime(new Date());
+                userRemainingDO.setIncreaseTime(new Date());
+                userRemainingDO.setUpdateTime(new Date());
                 userRemainingDO.setOpenId(openid);
                 sysUserRemainingMapper.insert(userRemainingDO);
             }
@@ -241,8 +249,75 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, UserDO> implements 
     }
 
     @Override
-    public UserDTO getUserByOpenId(String openId) {
+    public UserDTO getUserByOpenId() {
+        UserDTO userDTO = SecureUtil.getUser();
+        if (userDTO == null) {
+            throw new DataException("未找到用户信息");
+        }
+        String openId = userDTO.getOpenId();
+        if (StrUtil.isEmpty(openId)) {
+            throw new DataException("未找到用户信息");
+        }
         return userMapper.selectUserByOpenId(openId);
+    }
+
+    @Override
+    public UserDTO addNumber() {
+        UserDTO userDTO = SecureUtil.getUser();
+        if (userDTO == null) {
+            throw new DataException("未找到用户信息");
+        }
+        String openId = userDTO.getOpenId();
+        if (StrUtil.isEmpty(openId)) {
+            throw new DataException("未找到用户信息");
+        }
+        // 获取锁
+        boolean tryLock = lock.tryLock();
+        if (!tryLock) {
+            // 没获取到锁直接返回
+            return userDTO;
+        }
+        try {
+            // 查询用户剩余次数记录
+            LambdaQueryWrapper<SysUserRemainingDO> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(SysUserRemainingDO::getOpenId, openId);
+            SysUserRemainingDO remainingDO = sysUserRemainingMapper.selectOne(queryWrapper);
+            // 如果没有找到用户的剩余次数记录，说明是第一次，直接新增记录并赋初始值
+            if (remainingDO == null) {
+                remainingDO = new SysUserRemainingDO();
+                remainingDO.setOpenId(openId);
+                remainingDO.setNumber(10L);  // 初始次数为 10
+                remainingDO.setCreateTime(new Date());
+                remainingDO.setIncreaseTime(new Date());
+                remainingDO.setUpdateTime(new Date());  // 设置当前时间为更新时间
+                sysUserRemainingMapper.insert(remainingDO);
+                userDTO.setNumber(10L);
+                userDTO.setToday(10L);
+                return userDTO;
+            }
+
+            // 判断是否是今天更新的
+            LocalDate today = LocalDate.now();
+            LocalDate lastUpdateDate = remainingDO.getIncreaseTime().toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+            // 判断是否是今天更新的
+            if (lastUpdateDate.equals(today)) {
+                // 如果是今天已更新，返回错误信息
+                throw new DataException("今日免费权益已领取过，请明日再试。");
+            } else {
+                Long number = remainingDO.getNumber() + 10;
+                remainingDO.setNumber(number);
+                remainingDO.setIncreaseTime(new Date());
+                sysUserRemainingMapper.updateById(remainingDO);  // 更新数据库记录
+                userDTO.setNumber(number);
+                userDTO.setToday(10L);
+                return userDTO;
+            }
+        } finally {
+            // 无论成功还是失败，都释放锁
+            lock.unlock();
+        }
     }
 
 

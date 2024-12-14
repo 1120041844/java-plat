@@ -41,21 +41,21 @@ public class AiDrawResultTask {
         }
     }
 
-    @Scheduled(cron = "0 0 2 * * ?")
-    public void increaseCreditLimit() {
-        List<SysUserRemainingDO> sysUserRemainingDOS = sysUserRemainingMapper.selectList(new LambdaQueryWrapper<>());
-        if (CollUtil.isEmpty(sysUserRemainingDOS)) {
-            return;
-        }
-        for (SysUserRemainingDO remainingDO : sysUserRemainingDOS) {
-            Long number = remainingDO.getNumber();
-            if (number < 50) {
-                Long updatedNumber = Math.min(number + 10, 50L);
-                if (!updatedNumber.equals(number)) {
-                    remainingDO.setNumber(updatedNumber);
-                    sysUserRemainingMapper.updateById(remainingDO);
-                }
-            }
-        }
-    }
+//    @Scheduled(cron = "0 0 2 * * ?")
+//    public void increaseCreditLimit() {
+//        List<SysUserRemainingDO> sysUserRemainingDOS = sysUserRemainingMapper.selectList(new LambdaQueryWrapper<>());
+//        if (CollUtil.isEmpty(sysUserRemainingDOS)) {
+//            return;
+//        }
+//        for (SysUserRemainingDO remainingDO : sysUserRemainingDOS) {
+//            Long number = remainingDO.getNumber();
+//            if (number < 50) {
+//                Long updatedNumber = Math.min(number + 10, 50L);
+//                if (!updatedNumber.equals(number)) {
+//                    remainingDO.setNumber(updatedNumber);
+//                    sysUserRemainingMapper.updateById(remainingDO);
+//                }
+//            }
+//        }
+//    }
 }

@@ -69,8 +69,13 @@ public class UserController extends BaseController {
 
 
     @RequestMapping(value = "/getUserDetail",method = RequestMethod.GET)
-    public ApiResult<UserDTO> getUserDetail(@RequestParam("openId") String openId) {
-        return data(userService.getUserByOpenId(openId));
+    public ApiResult<UserDTO> getUserDetail() {
+        return data(userService.getUserByOpenId());
+    }
+
+    @RequestMapping(value = "/addNumber",method = RequestMethod.POST)
+    public ApiResult<UserDTO> addNumber() {
+        return data(userService.addNumber());
     }
 
 

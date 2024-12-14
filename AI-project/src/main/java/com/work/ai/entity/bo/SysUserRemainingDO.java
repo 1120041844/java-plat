@@ -42,4 +42,8 @@ public class SysUserRemainingDO implements Serializable {
      */
     private Date createTime;
 
+    private Date increaseTime;
+
+    private Date updateTime;
+
 }

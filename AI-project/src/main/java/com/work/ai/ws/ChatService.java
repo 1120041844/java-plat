@@ -81,6 +81,8 @@ public class ChatService {
             SysUserRemainingDO sysUserRemainingDO = new SysUserRemainingDO();
             sysUserRemainingDO.setOpenId(openId);
             sysUserRemainingDO.setCreateTime(new Date());
+            sysUserRemainingDO.setIncreaseTime(new Date());
+            sysUserRemainingDO.setUpdateTime(new Date());
             sysUserRemainingDO.setNumber(10L);
             sysUserRemainingMapper.insert(sysUserRemainingDO);
         } else {
