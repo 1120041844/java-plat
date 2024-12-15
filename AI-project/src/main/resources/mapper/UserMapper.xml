@@ -31,7 +31,7 @@
         </where>
     </select>
     <select id="selectByOpenId" resultType="com.work.ai.entity.bo.UserDO">
-        select * from sys_user where open_id = #{openId}
+        select * from sys_user where open_id = #{openId} for update
 
     </select>
     <select id="selectUserByOpenId" resultType="com.work.ai.entity.dto.UserDTO">
