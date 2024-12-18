@@ -1,6 +1,7 @@
 package com.work.ai.utils;
 
 import cn.hutool.core.collection.CollUtil;
+import com.volcengine.ark.runtime.model.Usage;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionRequest;
 import com.volcengine.ark.runtime.model.completion.chat.ChatMessage;
@@ -117,6 +118,7 @@ public class DouBaoUtil {
         ChatCompletionRequest streamChatCompletionRequest = ChatCompletionRequest.builder()
                 .model("ep-20241019145904-z8xbc")
                 .messages(streamMessages)
+                .streamOptions(new ChatCompletionRequest.ChatCompletionRequestStreamOptions(true))
                 .build();
 
         Flowable<ChatCompletionChunk> completion = service.streamChatCompletion(streamChatCompletionRequest);
@@ -126,11 +128,13 @@ public class DouBaoUtil {
 
     public static void main(String[] args) {
         Thread thread = new Thread(() -> {
-            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable = streamingChat2(null, "你是豆包，是由字节跳动开发的 AI 人工智能助手", "给我讲个故事听");
+            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable = streamingChat2(null, "你是豆包，是由字节跳动开发的 AI 人工智能助手", "给我讲个笑话听");
             chatCompletionChunkFlowable.doOnError(throwable -> {
             }).doOnComplete(() -> {
             }).blockingForEach(
                     choice -> {
+                        Usage usage = choice.getUsage();
+                        System.out.println(usage);
                         if (choice.getChoices().size() > 0) {
                             Object content = choice.getChoices().get(0).getMessage().getContent();
                             String message = String.valueOf(content);
@@ -139,34 +143,34 @@ public class DouBaoUtil {
                     });
         });
 
-        Thread thread2 = new Thread(() -> {
-            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable2 = streamingChat2(null, "接下来你以霸道总裁的身份和我对话", "给我讲个笑话听");
-            chatCompletionChunkFlowable2.doOnError(throwable -> {}).doOnComplete(() -> {
-            }).blockingForEach(
-                    choice -> {
-                        if (choice.getChoices().size() > 0) {
-                            Object content = choice.getChoices().get(0).getMessage().getContent();
-                            String message = String.valueOf(content);
-                            System.out.print("【【" +message +"】】");
-                        }
-                    });
-        });
-
-        Thread thread3 = new Thread(() -> {
-            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable2 = streamingChat2(null, "接下来你以老师的角色回答我的问题", "二次元函数怎么求");
-            chatCompletionChunkFlowable2.doOnError(throwable -> {}).doOnComplete(() -> {
-            }).blockingForEach(
-                    choice -> {
-                        if (choice.getChoices().size() > 0) {
-                            Object content = choice.getChoices().get(0).getMessage().getContent();
-                            String message = String.valueOf(content);
-                            System.out.print("*****" +message +"*****");
-                        }
-                    });
-        });
+//        Thread thread2 = new Thread(() -> {
+//            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable2 = streamingChat2(null, "接下来你以霸道总裁的身份和我对话", "给我讲个笑话听");
+//            chatCompletionChunkFlowable2.doOnError(throwable -> {}).doOnComplete(() -> {
+//            }).blockingForEach(
+//                    choice -> {
+//                        if (choice.getChoices().size() > 0) {
+//                            Object content = choice.getChoices().get(0).getMessage().getContent();
+//                            String message = String.valueOf(content);
+//                            System.out.print("【【" +message +"】】");
+//                        }
+//                    });
+//        });
+//
+//        Thread thread3 = new Thread(() -> {
+//            Flowable<ChatCompletionChunk> chatCompletionChunkFlowable2 = streamingChat2(null, "接下来你以老师的角色回答我的问题", "二次元函数怎么求");
+//            chatCompletionChunkFlowable2.doOnError(throwable -> {}).doOnComplete(() -> {
+//            }).blockingForEach(
+//                    choice -> {
+//                        if (choice.getChoices().size() > 0) {
+//                            Object content = choice.getChoices().get(0).getMessage().getContent();
+//                            String message = String.valueOf(content);
+//                            System.out.print("*****" +message +"*****");
+//                        }
+//                    });
+//        });
         thread.start();
-        thread2.start();
-        thread3.start();
+//        thread2.start();
+//        thread3.start();
 
     }
 }

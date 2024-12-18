@@ -54,9 +54,17 @@ public class ImChatDO implements Serializable {
 
     private String errorMessage;
     /**
-     * tokens
+     * 输入token
      */
-    private String tokens;
+    private Long promptTokens;
+    /**
+     * 输出token
+     */
+    private Long completionTokens;
+    /**
+     * 总token
+     */
+    private Long totalTokens;
     /**
      * createDate
      */

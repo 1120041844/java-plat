@@ -6,13 +6,13 @@ import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.volcengine.ark.runtime.model.Usage;
 import com.volcengine.ark.runtime.model.completion.chat.ChatCompletionChunk;
 import com.work.ai.constants.ApiResult;
 import com.work.ai.constants.ResultCodeEnum;
 import com.work.ai.entity.bo.SysUserRemainingDO;
 import com.work.ai.entity.bo.UserDO;
 import com.work.ai.enums.RoleTypeEnum;
-import com.work.ai.exception.DataException;
 import com.work.ai.mapper.AiRoleMapper;
 import com.work.ai.mapper.ImChatMapper;
 import com.work.ai.mapper.SysUserRemainingMapper;
@@ -28,11 +28,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.websocket.Session;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static cn.hutool.poi.excel.sax.AttributeName.t;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -119,7 +118,9 @@ public class ChatService {
         } else {
             messageId = IDUtil.generatorSnowId();
         }
-
+        AtomicLong promptTokens = new AtomicLong(0L);
+        AtomicLong completionTokens = new AtomicLong(0L);
+        AtomicLong totalTokens = new AtomicLong(0L);
         String shortId = Base64IdUtil.generateShortId();
         AtomicBoolean allSuccess = new AtomicBoolean(true);
         StringBuilder sb = new StringBuilder();
@@ -132,9 +133,17 @@ public class ChatService {
             error.add(ExceptionUtil.getMessage(throwable));
             allSuccess.set(false);
         }).doOnComplete(() -> {
-            record(openId ,shortId, finalMessageId,type ,question ,sb.toString(),allSuccess, error);
+            record(openId ,shortId, finalMessageId,type ,
+                    question ,sb.toString(),allSuccess, error,
+                    promptTokens.longValue(),completionTokens.longValue(), totalTokens.longValue());
         }).blockingForEach(
                 choice -> {
+                    Usage usage = choice.getUsage();
+                    if (usage != null) {
+                        promptTokens.set(usage.getPromptTokens());
+                        completionTokens.set(usage.getCompletionTokens());
+                        totalTokens.set(usage.getTotalTokens());
+                    }
                     if (choice.getChoices().size() > 0) {
                         Object content = choice.getChoices().get(0).getMessage().getContent();
                         String message = String.valueOf(content);
@@ -213,7 +222,7 @@ public class ChatService {
      * @param success
      * @param error
      */
-    private void record(String openId,String shortId,String messageId ,String type, String question, String message, AtomicBoolean success, List<String> error) {
+    private void record(String openId,String shortId,String messageId ,String type, String question, String message, AtomicBoolean success, List<String> error,Long promptTokens,Long completionTokens, Long totalTokens) {
         ImChatDO imChatDO = new ImChatDO();
         imChatDO.setOpenId(openId);
         imChatDO.setShortId(shortId);
@@ -222,6 +231,9 @@ public class ChatService {
         imChatDO.setAnswer(message);
         imChatDO.setType(type);
         imChatDO.setStatus(success.get() ? 0 : 1);
+        imChatDO.setPromptTokens(promptTokens);
+        imChatDO.setCompletionTokens(completionTokens);
+        imChatDO.setTotalTokens(totalTokens);
         imChatDO.setErrorMessage(CollUtil.isEmpty(error)? null: JSONArray.toJSONString(error));
         imChatDO.setCreateTime(new Date());
         imChatMapper.insert(imChatDO);

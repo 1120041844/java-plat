@@ -82,7 +82,7 @@ public class DoubaoDrawServiceImpl implements DrawService {
         if (StrUtil.isNotEmpty(desc)) {
             return desc +"，";
         }
-        return null;
+        return "";
     }
 
     @Override
